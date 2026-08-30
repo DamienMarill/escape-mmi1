@@ -127,3 +127,107 @@
 		@apply font-sans;
 	}
 }
+
+/* Couche de surcharge (game-design §14) — thème par phase + deux couches d'overlay. */
+
+.game-root {
+	position: relative;
+	min-height: 100dvh;
+	--game-bg: oklch(0.18 0.02 250);
+	--game-fg: oklch(0.95 0.01 250);
+	--game-accent: oklch(0.62 0.14 240);
+	background-color: var(--game-bg);
+	color: var(--game-fg);
+}
+
+.game-root[data-phase='2'] {
+	--game-bg: oklch(0.12 0.03 25);
+	--game-fg: oklch(0.94 0.02 40);
+	--game-accent: oklch(0.58 0.19 25);
+}
+
+.blocking-layer {
+	position: fixed;
+	inset: 0;
+	z-index: 40;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--game-bg);
+	color: var(--game-fg);
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		opacity 400ms ease,
+		visibility 0s linear 400ms;
+}
+
+.blocking-layer.is-active {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transition:
+		opacity 400ms ease,
+		visibility 0s linear 0s;
+}
+
+.event-layer {
+	position: fixed;
+	inset: 0;
+	z-index: 60;
+	pointer-events: none;
+}
+
+.lock-flash {
+	position: absolute;
+	inset: 0;
+	background-color: white;
+	opacity: 0;
+}
+
+.lock-flash.is-flashing {
+	animation: lock-flash-pop 260ms ease-out;
+}
+
+@keyframes lock-flash-pop {
+	0% {
+		opacity: 0.85;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+@keyframes lock-flash-fade {
+	0% {
+		opacity: 0.4;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+.calm .lock-flash.is-flashing {
+	animation: lock-flash-fade 900ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lock-flash.is-flashing {
+		animation: lock-flash-fade 900ms ease-out;
+	}
+}
+
+.hint-panel {
+	position: fixed;
+	right: 1.5rem;
+	bottom: 1.5rem;
+	z-index: 70;
+	pointer-events: auto;
+}
+
+.no-transition,
+.no-transition * {
+	transition: none !important;
+	animation: none !important;
+}
