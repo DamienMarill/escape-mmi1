@@ -2,6 +2,9 @@
 // invitation à animer (game-design §14.4) : le serveur pousse l'état complet,
 // les clients s'installent dedans.
 
+import { CORRECT_SEQUENCE } from '$lib/image-data';
+import { simulate, type BlockId } from '$lib/dev-sim';
+import { BASE_QUOTA, REQUIRED_LOCKS } from '$lib/systeme-data';
 import { CORRESPONDENCE_TABLE, BRANCH_ORDER } from '$lib/tasks-data';
 import type { Action, ChronoState, EpreuveId, LockId, PublicState, Role, TaskId } from '$lib/types';
 import { EPREUVE_IDS, POST_ROLES, TASK_IDS, TASK_PORT } from '$lib/types';
@@ -56,6 +59,8 @@ export function initialPublicState(now: number): PublicState {
 		relockAt: {},
 		revealedSegments: {},
 		reseau: { entries: {}, attempts: 0, lockedUntil: null },
+		systeme: { locks: [] },
+		devFails: 0,
 		basculeDelays: {},
 		hints: {},
 		revealedPorts: [],
@@ -247,6 +252,71 @@ export class Game {
 				}
 				this.commit();
 				return { ok: false, error: 'table de routage invalide' };
+			}
+			case 'dev/submit': {
+				if (s.phase !== 'phase1') return { ok: false, error: 'hors phase 1' };
+				if (s.epreuves.dev.solved) break;
+				// Les blocs verrouillés exigent leurs tâches (validation serveur stricte)
+				const program = action.program as BlockId[];
+				if (program.includes('si-mur-tourne') && !s.tasks.compilation.solved)
+					return { ok: false, error: 'bloc SI MUR verrouillé — source : un poste TÂCHE' };
+				if (program.includes('repete-avance') && !s.tasks.memoire.solved)
+					return { ok: false, error: 'bloc RÉPÈTE ×3 verrouillé — source : un poste TÂCHE' };
+				const sim = simulate(program);
+				if (!sim.success) {
+					s.devFails += 1;
+					this.commit();
+					const hint =
+						s.devFails >= 3 && sim.outcome === 'energy'
+							? ' — séquence trop coûteuse pour cette grille'
+							: '';
+					return { ok: false, error: `le robot n’a pas atteint la cible${hint}` };
+				}
+				s.devFails = 0;
+				s.epreuves.dev.solved = true;
+				this.openLock('alpha', 'séquenceur résolu');
+				break;
+			}
+			case 'image/submit': {
+				if (s.phase !== 'phase1') return { ok: false, error: 'hors phase 1' };
+				if (s.epreuves.image.solved) break;
+				const ops = action.ops;
+				// Les opérations verrouillées exigent leurs tâches
+				if (ops.includes('negatif') && !s.tasks.scan.solved)
+					return { ok: false, error: 'opération Négatif verrouillée — source : un poste TÂCHE' };
+				if (ops.includes('contraste') && !s.tasks.synchro.solved)
+					return { ok: false, error: 'opération Contraste verrouillée — source : un poste TÂCHE' };
+				const correct =
+					ops.length === CORRECT_SEQUENCE.length &&
+					CORRECT_SEQUENCE.every((op, i) => ops[i] === op);
+				if (!correct) return { ok: false, error: 'restauration non conforme à l’original' };
+				s.epreuves.image.solved = true;
+				this.log('image restaurée — schéma des verrous révélé');
+				break;
+			}
+			case 'systeme/toggle': {
+				if (s.phase !== 'phase1') return { ok: false, error: 'hors phase 1' };
+				const quota =
+					BASE_QUOTA + (s.tasks.brassage.solved ? 1 : 0) + (s.tasks.parite.solved ? 1 : 0);
+				const idx = s.systeme.locks.indexOf(action.lock);
+				if (idx >= 0) {
+					s.systeme.locks.splice(idx, 1);
+				} else {
+					if (s.systeme.locks.length >= quota)
+						return { ok: false, error: `quota de verrous atteint (${quota})` };
+					s.systeme.locks.push(action.lock);
+				}
+				break;
+			}
+			case 'systeme/openTarget': {
+				if (s.phase !== 'phase1') return { ok: false, error: 'hors phase 1' };
+				if (s.epreuves.systeme.solved) break;
+				const open = new Set(s.systeme.locks);
+				const ok = REQUIRED_LOCKS.every((lock) => open.has(lock));
+				if (!ok) return { ok: false, error: 'accès refusé — permissions insuffisantes' };
+				s.epreuves.systeme.solved = true;
+				this.openLock('beta', 'arborescence résolue');
+				break;
 			}
 			case 'mj/reset': {
 				this.reset();

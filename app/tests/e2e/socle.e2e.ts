@@ -47,7 +47,7 @@ test('démarrage de la phase 1 : la couche bloquante se retire, le module s’af
 	await act(request, { type: 'mj/startPhase1' });
 
 	await expect(post.getByTestId('blocking-layer')).toHaveAttribute('data-active', 'false');
-	await expect(post.locator('main')).toContainText('module DEV');
+	await expect(post.getByTestId('epreuve-dev')).toBeVisible();
 	await expect(post.locator('h1')).toContainText('ÉVALUATION');
 	await post.context().close();
 });
@@ -60,13 +60,13 @@ test('un poste rechargé en cours de session se resynchronise dans l’état cou
 	const clientId = await clientIdOf(post);
 	await act(request, { type: 'mj/assignRole', clientId, role: 'image' });
 	await act(request, { type: 'mj/startPhase1' });
-	await expect(post.locator('main')).toContainText('module IMAGE');
+	await expect(post.getByTestId('epreuve-image')).toBeVisible();
 
 	await post.reload();
 	// Même identité (localStorage), même état, sans repasser par l'identification
 	expect(await clientIdOf(post)).toBe(clientId);
 	await expect(post.getByTestId('blocking-layer')).toHaveAttribute('data-active', 'false');
-	await expect(post.locator('main')).toContainText('module IMAGE');
+	await expect(post.getByTestId('epreuve-image')).toBeVisible();
 	await post.context().close();
 });
 

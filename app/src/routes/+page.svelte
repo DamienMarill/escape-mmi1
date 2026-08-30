@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { connection } from '$lib/client/connection.svelte';
+	import Dev from '$lib/components/epreuves/Dev.svelte';
+	import ImageEpreuve from '$lib/components/epreuves/Image.svelte';
 	import Reseau from '$lib/components/epreuves/Reseau.svelte';
+	import Systeme from '$lib/components/epreuves/Systeme.svelte';
 	import { display } from '$lib/components/overlay/display.svelte';
 	import { ROLE_LABELS, roleKind } from '$lib/components/overlay/helpers';
 	import Brassage from '$lib/components/tasks/Brassage.svelte';
@@ -94,11 +97,11 @@
 				{:else if postRole === 'scan'}
 					<Scan />
 				{:else if postRole === 'dev'}
-					<p class="font-mono text-lg opacity-60">module DEV — en construction</p>
+					<Dev />
 				{:else if postRole === 'image'}
-					<p class="font-mono text-lg opacity-60">module IMAGE — en construction</p>
+					<ImageEpreuve />
 				{:else}
-					<p class="font-mono text-lg opacity-60">module SYSTÈME — en construction</p>
+					<Systeme />
 				{/if}
 			{/if}
 		{/if}

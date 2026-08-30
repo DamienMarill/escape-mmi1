@@ -104,6 +104,10 @@ export interface PublicState {
 		attempts: number;
 		lockedUntil: number | null;
 	};
+	/** Poste SYSTÈME : verrous ouverts (`x:<path>` / `r:<path>`), persistants. */
+	systeme: { locks: string[] };
+	/** Poste DEV : nombre d'échecs consécutifs (pour le message du 3e échec). */
+	devFails: number;
 	/** Délai d'animation de bascule par clientId (ms), poussé au moment de la bascule. */
 	basculeDelays: Record<string, number>;
 	/** Indice MJ actif par clientId. */
@@ -135,7 +139,11 @@ export type PostAction =
 	| { type: 'reseau/validate' }
 	| { type: 'task/submit'; task: TaskId; payload: unknown }
 	| { type: 'reseau/setEntry'; port: PortId; value: string }
-	| { type: 'reseau/submit' };
+	| { type: 'reseau/submit' }
+	| { type: 'dev/submit'; program: string[] }
+	| { type: 'image/submit'; ops: string[] }
+	| { type: 'systeme/toggle'; lock: string }
+	| { type: 'systeme/openTarget' };
 
 export type Action = MjAction | PostAction;
 
