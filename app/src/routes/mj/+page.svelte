@@ -29,16 +29,16 @@
 	<title>Console MJ — Escape MMI1</title>
 </svelte:head>
 
-<div class="min-h-screen bg-neutral-950 text-neutral-100">
+<div class="dark min-h-screen bg-background text-foreground scheme-dark">
 	<header
-		class="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-800 bg-neutral-950 px-4 py-2"
+		class="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-4 py-2"
 	>
 		<h1 class="font-mono text-lg font-bold tracking-tight">Console MJ</h1>
-		<span class="font-mono text-xs text-neutral-400">{serverUrl}</span>
+		<span class="font-mono text-xs text-muted-foreground">{serverUrl}</span>
 	</header>
 
 	{#if !publicState}
-		<p class="p-8 text-neutral-400">Chargement de l'état…</p>
+		<p class="p-8 text-muted-foreground">Chargement de l'état…</p>
 	{:else}
 		<div class="grid grid-cols-1 gap-3 p-3 xl:grid-cols-2 2xl:grid-cols-3">
 			<PostesPanel {publicState} onIndice={focusHint} />

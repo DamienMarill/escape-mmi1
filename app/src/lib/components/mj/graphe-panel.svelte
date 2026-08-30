@@ -42,10 +42,12 @@
 	</Card.Header>
 	<Card.Content class="space-y-4">
 		<div>
-			<h3 class="mb-1.5 text-xs font-semibold tracking-wide text-neutral-500 uppercase">Cadenas</h3>
+			<h3 class="mb-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+				Cadenas
+			</h3>
 			<div class="flex flex-wrap gap-2">
 				{#each LOCK_IDS as lock (lock)}
-					<div class="flex items-center gap-1.5 rounded-lg border border-neutral-800 px-2 py-1">
+					<div class="flex items-center gap-1.5 rounded-lg border border-border px-2 py-1">
 						<span class="font-mono text-sm font-bold">{LOCK_LABELS[lock]}</span>
 						<Badge variant={STATUS_VARIANT[publicState.locks[lock]]}
 							>{STATUS_LABELS[publicState.locks[lock]]}</Badge
@@ -64,7 +66,7 @@
 			</div>
 		</div>
 		<div>
-			<h3 class="mb-1.5 text-xs font-semibold tracking-wide text-neutral-500 uppercase">
+			<h3 class="mb-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
 				Épreuves
 			</h3>
 			<div class="flex flex-wrap gap-2">
@@ -76,7 +78,9 @@
 			</div>
 		</div>
 		<div>
-			<h3 class="mb-1.5 text-xs font-semibold tracking-wide text-neutral-500 uppercase">Tâches</h3>
+			<h3 class="mb-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+				Tâches
+			</h3>
 			<div class="flex flex-wrap gap-2">
 				{#each TASK_IDS as id (id)}
 					<Badge variant={publicState.tasks[id].solved ? 'default' : 'outline'}>

@@ -42,6 +42,21 @@ Reset entre deux sessions : bouton **RESET** de la console MJ (affiche la checkl
 | Documents & fragments d'ambiance             | `src/lib/phase2-data.ts`                                         |
 | Image du poste IMAGE (source + détail caché) | `drawOriginal()` dans `src/lib/image-data.ts`                    |
 
+## Tester à plusieurs postes sur une seule machine
+
+L'identité d'un poste vit dans le `localStorage` (partagé entre les onglets d'un
+même navigateur) : deux onglets ordinaires comptent donc pour **un seul** poste —
+c'est le comportement voulu sur les machines de l'IUT. Pour simuler plusieurs
+postes en local, ouvrir chaque onglet avec un numéro distinct :
+
+```
+http://localhost:3000/?poste=1
+http://localhost:3000/?poste=2
+http://localhost:3000/?poste=3
+```
+
+(ou utiliser des fenêtres de navigation privée / des profils différents).
+
 ## Développement
 
 ```bash

@@ -18,10 +18,10 @@
 	<Card.Content>
 		<div class="h-64 space-y-1 overflow-y-auto pr-1 font-mono text-sm">
 			{#each entries as entry, i (i)}
-				<p><span class="text-neutral-500">{formatTime(entry.t)}</span> {entry.msg}</p>
+				<p><span class="text-muted-foreground">{formatTime(entry.t)}</span> {entry.msg}</p>
 			{/each}
 			{#if entries.length === 0}
-				<p class="text-neutral-500">Aucun événement pour l'instant.</p>
+				<p class="text-muted-foreground">Aucun événement pour l'instant.</p>
 			{/if}
 		</div>
 	</Card.Content>

@@ -24,7 +24,12 @@ export class Connection {
 	async start(opts: { asPost?: boolean } = {}) {
 		const asPost = opts.asPost ?? true;
 		if (asPost) {
-			const stored = localStorage.getItem(STORAGE_KEY) ?? undefined;
+			// Test local multi-onglets : `/?poste=2` isole l'identité par valeur.
+			// (Sans le paramètre — cas nominal du jour J — une machine = une identité,
+			// partagée entre onglets et persistante entre rechargements.)
+			const slot = new URLSearchParams(location.search).get('poste');
+			const storageKey = slot ? `${STORAGE_KEY}-${slot}` : STORAGE_KEY;
+			const stored = localStorage.getItem(storageKey) ?? undefined;
 			const res = await fetch('/api/register', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -33,7 +38,7 @@ export class Connection {
 			const data = (await res.json()) as { clientId: string; number: number };
 			this.clientId = data.clientId;
 			this.number = data.number;
-			localStorage.setItem(STORAGE_KEY, data.clientId);
+			localStorage.setItem(storageKey, data.clientId);
 		}
 		const url = this.clientId
 			? `/api/events?client=${encodeURIComponent(this.clientId)}`

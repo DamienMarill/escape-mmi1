@@ -53,7 +53,7 @@
 	<Card.Content class="space-y-3">
 		<div class="flex items-baseline gap-3">
 			<span class="font-mono text-4xl font-bold tabular-nums">{format(elapsedMs)}</span>
-			<span class="text-sm text-neutral-500">
+			<span class="text-sm text-muted-foreground">
 				/ {format(publicState.chrono.durationMs)} · reste {format(remainingMs)}
 			</span>
 		</div>
