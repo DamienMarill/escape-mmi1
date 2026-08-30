@@ -57,6 +57,13 @@ http://localhost:3000/?poste=3
 
 (ou utiliser des fenêtres de navigation privée / des profils différents).
 
+⚠️ **Maximum ~5 onglets de postes par profil navigateur.** Chaque poste garde un
+flux SSE ouvert en permanence, et Chrome plafonne à 6 connexions HTTP/1.1
+simultanées par hôte : au-delà, les onglets suivants chargent indéfiniment.
+Pour simuler plus de postes : navigation privée, autre profil, autre navigateur
+(chacun apporte son propre pool de 6 connexions). **Aucun impact le jour J** :
+une machine physique = un navigateur = son propre pool.
+
 ## Développement
 
 ```bash
