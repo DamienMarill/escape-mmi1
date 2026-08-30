@@ -12,6 +12,8 @@ function createGame(): Game {
 		salle: (snapshot?.salle as SalleData) ?? undefined
 	});
 	startSnapshotLoop(game);
+	const ticker = setInterval(() => game.tick(), 500);
+	ticker.unref?.();
 	return game;
 }
 

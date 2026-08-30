@@ -180,6 +180,129 @@ describe('notifications', () => {
 	});
 });
 
+describe('séquence de validation finale et bascule', () => {
+	function openAll(game: Game) {
+		game.apply({ type: 'mj/cheatOpenLock', lock: 'alpha' });
+		game.apply({ type: 'mj/cheatOpenLock', lock: 'beta' });
+		game.apply({ type: 'mj/cheatOpenLock', lock: 'gamma' });
+	}
+
+	it('refuse la validation tant que les 3 cadenas ne sont pas ouverts', () => {
+		const { game } = makeGame();
+		const res = game.apply({ type: 'reseau/validate' });
+		expect(res.ok).toBe(false);
+	});
+
+	it('VALIDER → séquence (20 s) → bascule → (90 s) → phase 2', () => {
+		const { game, tick } = makeGame();
+		game.register('a');
+		game.apply({ type: 'mj/startPhase1' });
+		openAll(game);
+		game.apply({ type: 'reseau/validate' });
+		expect(game.state.finale).toBe('validating');
+
+		tick(19_000);
+		game.tick();
+		expect(game.state.phase).toBe('phase1');
+
+		tick(1_500);
+		game.tick();
+		expect(game.state.phase).toBe('bascule');
+		expect(game.state.finale).toBe('done');
+		expect(Object.keys(game.state.basculeDelays)).toContain('a');
+
+		tick(89_000);
+		game.tick();
+		expect(game.state.phase).toBe('bascule');
+
+		tick(2_000);
+		game.tick();
+		expect(game.state.phase).toBe('phase2');
+		expect(game.state.relockAt.alpha).toBeDefined();
+	});
+
+	it('intro : mj/startIntro puis projector/introEnded démarre la phase 1', () => {
+		const { game } = makeGame();
+		game.apply({ type: 'mj/startIntro' });
+		expect(game.state.phase).toBe('intro');
+		game.apply({ type: 'projector/introEnded' });
+		expect(game.state.phase).toBe('phase1');
+		expect(game.state.chrono.running).toBe(true);
+	});
+});
+
+describe('phase 2 : refermeture des cadenas et Fin A', () => {
+	function toPhase2(startAt = 1_000_000) {
+		let now = startAt;
+		const game = new Game({ now: () => now });
+		const tick = (ms: number) => (now += ms);
+		game.apply({ type: 'mj/startPhase1' });
+		// 15 min de phase 1 écoulées sur 30 min
+		tick(15 * 60_000);
+		game.apply({ type: 'mj/cheatOpenLock', lock: 'alpha' });
+		game.apply({ type: 'mj/cheatOpenLock', lock: 'beta' });
+		game.apply({ type: 'mj/cheatOpenLock', lock: 'gamma' });
+		game.apply({ type: 'reseau/validate' });
+		tick(20_000);
+		game.tick(); // bascule
+		tick(90_000);
+		game.tick(); // phase2
+		return { game, tick };
+	}
+
+	it('referme les cadenas un par un aux horaires programmés', () => {
+		const { game, tick } = toPhase2();
+		expect(game.state.phase).toBe('phase2');
+		const remaining = game.state.chrono.durationMs - game.elapsedMs();
+		expect(remaining).toBeGreaterThan(0);
+
+		// avant le premier jalon : rien
+		game.tick();
+		expect(game.state.locks.alpha).toBe('open');
+
+		tick(remaining * 0.5);
+		game.tick();
+		expect(game.state.locks.alpha).toBe('reclosed');
+		expect(game.state.locks.beta).toBe('open');
+
+		tick(remaining * 0.3);
+		game.tick();
+		expect(game.state.locks.beta).toBe('reclosed');
+		expect(game.state.locks.gamma).toBe('open');
+		expect(game.state.ending).toBeNull();
+	});
+
+	it('le troisième cadenas refermé déclenche la Fin A par défaut', () => {
+		const { game, tick } = toPhase2();
+		tick(20 * 60_000);
+		game.tick();
+		expect(game.state.locks.gamma).toBe('reclosed');
+		expect(game.state.ending).toBe('A');
+		expect(game.state.phase).toBe('epilogue');
+		expect(game.salle.history).toHaveLength(1);
+		expect(game.salle.history[0].ending).toBe('A');
+	});
+
+	it('une Fin B posée avant le 3e jalon empêche la Fin A', () => {
+		const { game, tick } = toPhase2();
+		game.endGame('B', 'test');
+		tick(20 * 60_000);
+		game.tick();
+		expect(game.state.ending).toBe('B');
+		expect(game.salle.history.map((h) => h.ending)).toEqual(['B']);
+	});
+});
+
+describe('révélation de segment', () => {
+	it('publie la valeur du segment uniquement après révélation MJ', () => {
+		const { game } = makeGame();
+		expect(game.state.revealedSegments.C).toBeUndefined();
+		game.apply({ type: 'mj/revealSegment', port: 'C' });
+		expect(game.state.revealedSegments.C).toBe('F');
+		expect(game.state.revealedPorts).toContain('C');
+	});
+});
+
 describe('salle initiale', () => {
 	it('est vide', () => {
 		expect(initialSalle()).toEqual({ registry: {}, plan: {}, history: [] });

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { connection } from '$lib/client/connection.svelte';
 	import type { LockId, LockStatus } from '$lib/types';
+	import BasculeGlitch from './BasculeGlitch.svelte';
 	import HintPanel from './HintPanel.svelte';
 
 	let prevLocks: Record<LockId, LockStatus> | null = null;
@@ -26,6 +27,7 @@
 
 <div class="event-layer">
 	<div class="lock-flash" class:is-flashing={flashing}></div>
+	<BasculeGlitch />
 </div>
 
 <HintPanel />

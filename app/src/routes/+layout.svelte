@@ -5,14 +5,13 @@
 	import { page } from '$app/state';
 	import { connection } from '$lib/client/connection.svelte';
 	import BlockingLayer from '$lib/components/overlay/BlockingLayer.svelte';
+	import { display, syncDisplayPhase } from '$lib/components/overlay/display.svelte';
 	import EventLayer from '$lib/components/overlay/EventLayer.svelte';
-	import { isPhase2 } from '$lib/components/overlay/helpers';
 
 	let { children } = $props();
 
 	let pathname = $derived(page.url.pathname as string);
 	let isPostPage = $derived(pathname !== '/mj' && pathname !== '/projector');
-	let phase2 = $derived(isPhase2(connection.state?.phase));
 
 	let noTransition = $state(false);
 
@@ -28,6 +27,14 @@
 			});
 		}
 	});
+
+	// Décale l'affichage de la bascule par poste (game-design §14.3) : la phase serveur
+	// change au même instant sur les dix postes, la peau affichée change en vague.
+	$effect(() => {
+		const state = connection.state;
+		if (!state) return;
+		syncDisplayPhase(state, connection.clientId);
+	});
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
@@ -36,7 +43,8 @@
 	class="game-root"
 	class:no-transition={noTransition}
 	class:calm={connection.state?.calmMode}
-	data-phase={phase2 ? '2' : '1'}
+	data-phase={display.phase}
+	data-testid="game-root"
 >
 	{@render children()}
 	<BlockingLayer {isPostPage} />

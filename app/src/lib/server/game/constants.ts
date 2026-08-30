@@ -17,3 +17,38 @@ export const DEFAULT_MJ_KEY = 'brassens';
 
 /** Étalement de la bascule : chaque poste reçoit un délai aléatoire dans cette fenêtre. */
 export const BASCULE_STAGGER_MS = 2_500;
+
+/**
+ * Facteur d'échelle des séquences chronométrées (TIME_SCALE env).
+ * Uniquement pour les tests e2e — jamais en production.
+ */
+const SCALE = Number(process.env.TIME_SCALE ?? '1');
+
+/** Durée de la séquence bureaucratique après le clic VALIDER. */
+export const VALIDATION_SEQUENCE_MS = 20_000 * SCALE;
+
+/** Durée de la bascule (non interactif, ~90 s — game-design §4). */
+export const BASCULE_DURATION_MS = 90_000 * SCALE;
+
+/**
+ * Fermeture des cadenas en phase 2 : fractions du temps restant au moment
+ * de l'entrée en phase 2. Le troisième refermé déclenche la Fin A par défaut.
+ */
+export const RELOCK_FRACTIONS: Record<'alpha' | 'beta' | 'gamma', number> = {
+	alpha: 0.45,
+	beta: 0.75,
+	gamma: 1
+};
+
+/**
+ * Valeurs hexadécimales des six segments (une par port — game-design §5).
+ * SECRET : ne jamais exposer au client avant résolution de la tâche.
+ */
+export const SEGMENT_VALUES: Record<'A' | 'B' | 'C' | 'D' | 'E' | 'F', string> = {
+	A: '7',
+	B: 'D',
+	C: 'F',
+	D: '0',
+	E: '3',
+	F: 'C'
+};

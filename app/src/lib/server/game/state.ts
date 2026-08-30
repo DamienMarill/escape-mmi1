@@ -4,7 +4,14 @@
 
 import type { Action, ChronoState, EpreuveId, LockId, PublicState, Role, TaskId } from '$lib/types';
 import { EPREUVE_IDS, POST_ROLES, TASK_IDS } from '$lib/types';
-import { BASCULE_STAGGER_MS, SESSION_DURATION_MS } from './constants';
+import {
+	BASCULE_DURATION_MS,
+	BASCULE_STAGGER_MS,
+	RELOCK_FRACTIONS,
+	SEGMENT_VALUES,
+	SESSION_DURATION_MS,
+	VALIDATION_SEQUENCE_MS
+} from './constants';
 
 export interface SalleData {
 	/** clientId → numéro de poste (persiste entre sessions ET entre resets). */
@@ -38,6 +45,12 @@ export function initialPublicState(now: number): PublicState {
 		>,
 		finale: 'none',
 		ending: null,
+		introStartedAt: null,
+		finaleValidatedAt: null,
+		basculeAt: null,
+		phase2At: null,
+		relockAt: {},
+		revealedSegments: {},
 		basculeDelays: {},
 		hints: {},
 		revealedPorts: [],
@@ -156,12 +169,33 @@ export class Game {
 				this.log('distribution des rôles');
 				break;
 			}
+			case 'mj/startIntro': {
+				if (s.phase !== 'idle') return { ok: false, error: `intro impossible depuis ${s.phase}` };
+				s.phase = 'intro';
+				s.introStartedAt = this.now();
+				this.log('vidéo d’introduction lancée');
+				break;
+			}
+			case 'projector/introEnded': {
+				if (s.phase !== 'intro') return { ok: false, error: 'pas d’intro en cours' };
+				s.phase = 'phase1';
+				this.chronoTouch(true);
+				this.log('intro terminée — phase 1 démarrée');
+				break;
+			}
 			case 'mj/startPhase1': {
 				if (s.phase !== 'idle' && s.phase !== 'intro')
 					return { ok: false, error: `phase1 impossible depuis ${s.phase}` };
 				s.phase = 'phase1';
 				this.chronoTouch(true);
 				this.log('phase 1 démarrée');
+				break;
+			}
+			case 'reseau/validate': {
+				if (s.finale !== 'available') return { ok: false, error: 'validation finale indisponible' };
+				s.finale = 'validating';
+				s.finaleValidatedAt = this.now();
+				this.log('validation finale lancée');
 				break;
 			}
 			case 'mj/reset': {
@@ -191,6 +225,7 @@ export class Game {
 			}
 			case 'mj/revealSegment': {
 				if (!s.revealedPorts.includes(action.port)) s.revealedPorts.push(action.port);
+				s.revealedSegments[action.port] = SEGMENT_VALUES[action.port];
 				this.log(`segment du port ${action.port} révélé au projecteur`);
 				break;
 			}
@@ -231,10 +266,81 @@ export class Game {
 	bascule() {
 		const s = this.state;
 		s.phase = 'bascule';
+		s.basculeAt = this.now();
+		s.finale = 'done';
 		s.basculeDelays = Object.fromEntries(
 			Object.entries(s.posts).map(([id, p]) => [id, (p.number * 733) % BASCULE_STAGGER_MS])
 		);
 		this.log('bascule');
+		this.commit();
+	}
+
+	/** Entrée en phase 2 : programme la refermeture des cadenas sur le temps restant. */
+	enterPhase2() {
+		const s = this.state;
+		const now = this.now();
+		s.phase = 'phase2';
+		s.phase2At = now;
+		const remaining = Math.max(60_000, s.chrono.durationMs - this.elapsedMs());
+		s.relockAt = {
+			alpha: now + remaining * RELOCK_FRACTIONS.alpha,
+			beta: now + remaining * RELOCK_FRACTIONS.beta,
+			gamma: now + remaining * RELOCK_FRACTIONS.gamma
+		};
+		this.log('phase 2 — confinement');
+		this.commit();
+	}
+
+	/**
+	 * Tick d'horloge (appelé toutes les ~500 ms par le serveur, ou manuellement
+	 * dans les tests). Fait avancer les séquences chronométrées.
+	 */
+	tick() {
+		const s = this.state;
+		const now = this.now();
+
+		if (
+			s.finale === 'validating' &&
+			s.finaleValidatedAt !== null &&
+			now >= s.finaleValidatedAt + VALIDATION_SEQUENCE_MS
+		) {
+			this.bascule();
+			return;
+		}
+
+		if (s.phase === 'bascule' && s.basculeAt !== null && now >= s.basculeAt + BASCULE_DURATION_MS) {
+			this.enterPhase2();
+			return;
+		}
+
+		if (s.phase === 'phase2') {
+			let changed = false;
+			for (const lock of ['alpha', 'beta', 'gamma'] as const) {
+				const at = s.relockAt[lock];
+				if (at !== undefined && now >= at && s.locks[lock] === 'open') {
+					s.locks[lock] = 'reclosed';
+					this.log(`cadenas ${lock} refermé`);
+					changed = true;
+				}
+			}
+			const allReclosed = (['alpha', 'beta', 'gamma'] as const).every(
+				(l) => s.locks[l] === 'reclosed'
+			);
+			if (allReclosed && s.ending === null) {
+				this.endGame('A', 'procédure automatique — noyau supprimé');
+				return;
+			}
+			if (changed) this.commit();
+		}
+	}
+
+	/** Fin de partie (A ou B) : épilogue sur tous les postes, historique salle. */
+	endGame(ending: 'A' | 'B', reason: string) {
+		const s = this.state;
+		s.ending = ending;
+		s.phase = 'epilogue';
+		this.salle.history.push({ endedAt: this.now(), ending });
+		this.log(`fin ${ending} — ${reason}`);
 		this.commit();
 	}
 

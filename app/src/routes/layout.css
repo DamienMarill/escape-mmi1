@@ -231,3 +231,147 @@
 	transition: none !important;
 	animation: none !important;
 }
+
+/* Bascule (game-design §14.3) — glitch plein écran, couche événementielle, décalé par poste. */
+
+.bascule-glitch {
+	position: fixed;
+	inset: 0;
+	z-index: 80;
+	overflow: hidden;
+	background-color: black;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.bascule-glitch.is-active {
+	opacity: 1;
+	visibility: visible;
+}
+
+.bascule-glitch__rgb,
+.bascule-glitch__scan,
+.bascule-glitch__flash {
+	position: absolute;
+	inset: 0;
+}
+
+.bascule-glitch__rgb {
+	background-color: var(--game-bg);
+}
+
+.bascule-glitch__scan {
+	background: repeating-linear-gradient(
+		to bottom,
+		oklch(1 0 0 / 8%) 0px,
+		oklch(1 0 0 / 8%) 1px,
+		transparent 1px,
+		transparent 3px
+	);
+	mix-blend-mode: overlay;
+}
+
+.bascule-glitch__flash {
+	background-color: white;
+	opacity: 0;
+}
+
+.bascule-glitch.is-active .bascule-glitch__rgb {
+	animation: bascule-rgb-shift 260ms steps(2, end) infinite;
+}
+
+.bascule-glitch.is-active .bascule-glitch__scan {
+	animation: bascule-scan-shift 220ms steps(4, end) infinite;
+}
+
+.bascule-glitch.is-active .bascule-glitch__flash {
+	animation: bascule-flash-pop 1200ms steps(6, end) 1;
+}
+
+@keyframes bascule-rgb-shift {
+	0% {
+		transform: translate(0, 0);
+		clip-path: inset(0 0 0 0);
+	}
+	20% {
+		transform: translate(-6px, 2px);
+		clip-path: inset(10% 0 40% 0);
+	}
+	40% {
+		transform: translate(5px, -3px);
+		clip-path: inset(60% 0 5% 0);
+	}
+	60% {
+		transform: translate(-4px, 4px);
+		clip-path: inset(30% 0 30% 0);
+	}
+	80% {
+		transform: translate(6px, -2px);
+		clip-path: inset(5% 0 70% 0);
+	}
+	100% {
+		transform: translate(0, 0);
+		clip-path: inset(0 0 0 0);
+	}
+}
+
+@keyframes bascule-scan-shift {
+	0% {
+		transform: translateY(0);
+	}
+	100% {
+		transform: translateY(3px);
+	}
+}
+
+@keyframes bascule-flash-pop {
+	0%,
+	100% {
+		opacity: 0;
+	}
+	8%,
+	16% {
+		opacity: 0.5;
+	}
+	12% {
+		opacity: 0;
+	}
+	50% {
+		opacity: 0.25;
+	}
+	54% {
+		opacity: 0;
+	}
+}
+
+/* Mode calme / accessibilité : simple fondu au noir, aucun clignotement > 3 Hz. */
+.calm .bascule-glitch {
+	transition: opacity 600ms ease;
+}
+
+.calm .bascule-glitch__rgb,
+.calm .bascule-glitch__scan,
+.calm .bascule-glitch__flash {
+	animation: none !important;
+}
+
+.calm .bascule-glitch__rgb {
+	background-color: black;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.bascule-glitch {
+		transition: opacity 600ms ease;
+	}
+
+	.bascule-glitch__rgb,
+	.bascule-glitch__scan,
+	.bascule-glitch__flash {
+		animation: none !important;
+	}
+
+	.bascule-glitch__rgb {
+		background-color: black;
+	}
+}

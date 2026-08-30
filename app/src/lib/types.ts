@@ -30,6 +30,16 @@ export type LockStatus = 'locked' | 'open' | 'reclosed';
 export const PORT_IDS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
 export type PortId = (typeof PORT_IDS)[number];
 
+/** Chaque tâche produit le segment d'un port (game-design §5). */
+export const TASK_PORT: Record<TaskId, PortId> = {
+	compilation: 'A',
+	memoire: 'B',
+	brassage: 'C',
+	parite: 'D',
+	synchro: 'E',
+	scan: 'F'
+};
+
 export interface PostInfo {
 	/** Numéro affiché en grand sur l'écran d'identification. */
 	number: number;
@@ -76,6 +86,18 @@ export interface PublicState {
 	epreuves: Record<EpreuveId, { solved: boolean }>;
 	finale: 'none' | 'available' | 'validating' | 'done';
 	ending: 'A' | 'B' | null;
+	/** Horodatage serveur du lancement de la vidéo d'intro. */
+	introStartedAt: number | null;
+	/** Horodatage serveur du clic VALIDER (début de la séquence bureaucratique). */
+	finaleValidatedAt: number | null;
+	/** Horodatage serveur de l'entrée en bascule. */
+	basculeAt: number | null;
+	/** Horodatage serveur de l'entrée en phase 2. */
+	phase2At: number | null;
+	/** Horaires programmés de refermeture des cadenas en phase 2. */
+	relockAt: Partial<Record<LockId, number>>;
+	/** Valeurs des segments révélés au projecteur (soupape MJ uniquement). */
+	revealedSegments: Partial<Record<PortId, string>>;
 	/** Délai d'animation de bascule par clientId (ms), poussé au moment de la bascule. */
 	basculeDelays: Record<string, number>;
 	/** Indice MJ actif par clientId. */
@@ -98,9 +120,13 @@ export type MjAction =
 	| { type: 'mj/revealSegment'; port: PortId }
 	| { type: 'mj/sendHint'; clientId: string; text: string; level: number }
 	| { type: 'mj/clearHint'; clientId: string }
-	| { type: 'mj/setCalmMode'; on: boolean };
+	| { type: 'mj/setCalmMode'; on: boolean }
+	| { type: 'mj/startIntro' };
 
-export type PostAction = { type: 'post/activate'; clientId: string };
+export type PostAction =
+	| { type: 'post/activate'; clientId: string }
+	| { type: 'projector/introEnded' }
+	| { type: 'reseau/validate' };
 
 export type Action = MjAction | PostAction;
 
