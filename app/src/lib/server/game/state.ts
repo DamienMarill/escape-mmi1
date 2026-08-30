@@ -2,16 +2,20 @@
 // invitation à animer (game-design §14.4) : le serveur pousse l'état complet,
 // les clients s'installent dedans.
 
+import { CORRESPONDENCE_TABLE, BRANCH_ORDER } from '$lib/tasks-data';
 import type { Action, ChronoState, EpreuveId, LockId, PublicState, Role, TaskId } from '$lib/types';
-import { EPREUVE_IDS, POST_ROLES, TASK_IDS } from '$lib/types';
+import { EPREUVE_IDS, POST_ROLES, TASK_IDS, TASK_PORT } from '$lib/types';
 import {
 	BASCULE_DURATION_MS,
 	BASCULE_STAGGER_MS,
 	RELOCK_FRACTIONS,
+	RESEAU_LOCKOUT_MS,
+	RESEAU_MAX_ATTEMPTS,
 	SEGMENT_VALUES,
 	SESSION_DURATION_MS,
 	VALIDATION_SEQUENCE_MS
 } from './constants';
+import { validateTask } from './tasks';
 
 export interface SalleData {
 	/** clientId → numéro de poste (persiste entre sessions ET entre resets). */
@@ -51,6 +55,7 @@ export function initialPublicState(now: number): PublicState {
 		phase2At: null,
 		relockAt: {},
 		revealedSegments: {},
+		reseau: { entries: {}, attempts: 0, lockedUntil: null },
 		basculeDelays: {},
 		hints: {},
 		revealedPorts: [],
@@ -197,6 +202,51 @@ export class Game {
 				s.finaleValidatedAt = this.now();
 				this.log('validation finale lancée');
 				break;
+			}
+			case 'task/submit': {
+				if (s.phase !== 'phase1') return { ok: false, error: 'hors phase 1' };
+				const task = action.task;
+				if (s.tasks[task].solved) break; // déjà résolue — idempotent
+				const result = validateTask(task, action.payload);
+				if (!result.solved) {
+					return { ok: false, error: result.message ?? 'tentative non concluante' };
+				}
+				const port = TASK_PORT[task];
+				s.tasks[task] = { solved: true, segment: SEGMENT_VALUES[port] };
+				this.log(`tâche ${task} résolue — port ${port} obtenu`);
+				break;
+			}
+			case 'reseau/setEntry': {
+				// Saisie persistante : rien ne s'efface jamais tout seul (§6)
+				s.reseau.entries[action.port] = action.value;
+				break;
+			}
+			case 'reseau/submit': {
+				if (s.phase !== 'phase1') return { ok: false, error: 'hors phase 1' };
+				if (s.locks.gamma === 'open') break;
+				const now = this.now();
+				if (s.reseau.lockedUntil !== null && now < s.reseau.lockedUntil)
+					return { ok: false, error: 'RECALIBRAGE DU LECTEUR…' };
+				const complete = BRANCH_ORDER.every((port) => s.reseau.entries[port]);
+				if (!complete) return { ok: false, error: 'table incomplète' };
+				const correct = BRANCH_ORDER.every(
+					(port) => s.reseau.entries[port] === CORRESPONDENCE_TABLE[SEGMENT_VALUES[port]]
+				);
+				if (correct) {
+					s.reseau.attempts = 0;
+					s.reseau.lockedUntil = null;
+					s.epreuves.reseau.solved = true;
+					this.openLock('gamma', 'table de routage rétablie');
+					break;
+				}
+				s.reseau.attempts += 1;
+				if (s.reseau.attempts >= RESEAU_MAX_ATTEMPTS) {
+					s.reseau.attempts = 0;
+					s.reseau.lockedUntil = now + RESEAU_LOCKOUT_MS;
+					this.log('poste RÉSEAU en recalibrage (anti-brute-force)');
+				}
+				this.commit();
+				return { ok: false, error: 'table de routage invalide' };
 			}
 			case 'mj/reset': {
 				this.reset();

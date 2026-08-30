@@ -98,6 +98,12 @@ export interface PublicState {
 	relockAt: Partial<Record<LockId, number>>;
 	/** Valeurs des segments révélés au projecteur (soupape MJ uniquement). */
 	revealedSegments: Partial<Record<PortId, string>>;
+	/** Poste RÉSEAU : saisie persistante, tentatives, verrouillage anti-brute-force. */
+	reseau: {
+		entries: Partial<Record<PortId, string>>;
+		attempts: number;
+		lockedUntil: number | null;
+	};
 	/** Délai d'animation de bascule par clientId (ms), poussé au moment de la bascule. */
 	basculeDelays: Record<string, number>;
 	/** Indice MJ actif par clientId. */
@@ -126,7 +132,10 @@ export type MjAction =
 export type PostAction =
 	| { type: 'post/activate'; clientId: string }
 	| { type: 'projector/introEnded' }
-	| { type: 'reseau/validate' };
+	| { type: 'reseau/validate' }
+	| { type: 'task/submit'; task: TaskId; payload: unknown }
+	| { type: 'reseau/setEntry'; port: PortId; value: string }
+	| { type: 'reseau/submit' };
 
 export type Action = MjAction | PostAction;
 

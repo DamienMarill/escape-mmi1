@@ -52,3 +52,7 @@ export const SEGMENT_VALUES: Record<'A' | 'B' | 'C' | 'D' | 'E' | 'F', string> =
 	E: '3',
 	F: 'C'
 };
+
+/** Verrouillage anti-brute-force du poste RÉSEAU après 3 tentatives. */
+export const RESEAU_LOCKOUT_MS = 30_000 * SCALE;
+export const RESEAU_MAX_ATTEMPTS = 3;

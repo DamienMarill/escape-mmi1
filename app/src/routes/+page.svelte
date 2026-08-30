@@ -1,9 +1,16 @@
 <script lang="ts">
 	import { connection } from '$lib/client/connection.svelte';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
+	import Reseau from '$lib/components/epreuves/Reseau.svelte';
 	import { display } from '$lib/components/overlay/display.svelte';
 	import { ROLE_LABELS, roleKind } from '$lib/components/overlay/helpers';
+	import Brassage from '$lib/components/tasks/Brassage.svelte';
+	import Compilation from '$lib/components/tasks/Compilation.svelte';
+	import Memoire from '$lib/components/tasks/Memoire.svelte';
+	import Parite from '$lib/components/tasks/Parite.svelte';
+	import Scan from '$lib/components/tasks/Scan.svelte';
+	import Synchro from '$lib/components/tasks/Synchro.svelte';
+	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
 
 	let state = $derived(connection.state);
 	let me = $derived(connection.me);
@@ -63,28 +70,35 @@
 				</p>
 
 				{#if postRole === 'reseau'}
-					{#if state?.finale === 'available'}
-						<Button size="lg" onclick={validateFinale} data-testid="valider-btn">VALIDER</Button>
-					{:else if state?.finale === 'validating'}
-						<p class="font-mono text-lg opacity-60">VALIDATION EN COURS…</p>
-					{:else if inPhase2}
-						<p class="font-mono text-lg opacity-60">…</p>
-					{:else}
-						<p class="font-mono text-lg opacity-60">module RÉSEAU — en construction</p>
-					{/if}
+					<div class="flex w-full flex-col items-center gap-4" data-testid="epreuve-reseau">
+						{#if state?.finale === 'available'}
+							<Button size="lg" onclick={validateFinale} data-testid="valider-btn">VALIDER</Button>
+						{:else if state?.finale === 'validating'}
+							<p class="font-mono text-lg opacity-60">VALIDATION EN COURS…</p>
+						{/if}
+						<Reseau />
+					</div>
 				{:else if inPhase2}
 					<!-- Recyclage réel des modules en phase 2 à une étape ultérieure. -->
 					<p class="font-mono text-lg opacity-60">…</p>
+				{:else if postRole === 'compilation'}
+					<Compilation />
+				{:else if postRole === 'memoire'}
+					<Memoire />
+				{:else if postRole === 'brassage'}
+					<Brassage />
+				{:else if postRole === 'parite'}
+					<Parite />
+				{:else if postRole === 'synchro'}
+					<Synchro />
+				{:else if postRole === 'scan'}
+					<Scan />
 				{:else if postRole === 'dev'}
 					<p class="font-mono text-lg opacity-60">module DEV — en construction</p>
 				{:else if postRole === 'image'}
 					<p class="font-mono text-lg opacity-60">module IMAGE — en construction</p>
-				{:else if postRole === 'systeme'}
-					<p class="font-mono text-lg opacity-60">module SYSTÈME — en construction</p>
 				{:else}
-					<p class="font-mono text-lg opacity-60">
-						module {ROLE_LABELS[postRole]} — en construction
-					</p>
+					<p class="font-mono text-lg opacity-60">module SYSTÈME — en construction</p>
 				{/if}
 			{/if}
 		{/if}
