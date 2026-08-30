@@ -28,3 +28,4 @@ test-results
 data/
 data-e2e/
 data-dev/
+.idea/
