@@ -23,6 +23,7 @@ export const BASCULE_STAGGER_MS = 2_500;
  * Uniquement pour les tests e2e — jamais en production.
  */
 const SCALE = Number(process.env.TIME_SCALE ?? '1');
+export const TIME_SCALE = SCALE;
 
 /** Durée de la séquence bureaucratique après le clic VALIDER. */
 export const VALIDATION_SEQUENCE_MS = 20_000 * SCALE;
@@ -56,3 +57,6 @@ export const SEGMENT_VALUES: Record<'A' | 'B' | 'C' | 'D' | 'E' | 'F', string> =
 /** Verrouillage anti-brute-force du poste RÉSEAU après 3 tentatives. */
 export const RESEAU_LOCKOUT_MS = 30_000 * SCALE;
 export const RESEAU_MAX_ATTEMPTS = 3;
+
+/** Intervalle entre deux manifestations de l'IA en phase 2. */
+export const MANIFESTATION_INTERVAL_MS = 75_000 * SCALE;

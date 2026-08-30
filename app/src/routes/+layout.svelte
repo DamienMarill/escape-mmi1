@@ -7,6 +7,7 @@
 	import BlockingLayer from '$lib/components/overlay/BlockingLayer.svelte';
 	import { display, syncDisplayPhase } from '$lib/components/overlay/display.svelte';
 	import EventLayer from '$lib/components/overlay/EventLayer.svelte';
+	import Manifestation from '$lib/components/phase2/Manifestation.svelte';
 
 	let { children } = $props();
 
@@ -49,5 +50,6 @@
 	{@render children()}
 	<BlockingLayer {isPostPage} />
 	<EventLayer />
+	<Manifestation />
 	<audio id="game-audio"></audio>
 </div>

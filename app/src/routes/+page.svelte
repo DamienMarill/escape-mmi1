@@ -6,6 +6,9 @@
 	import Systeme from '$lib/components/epreuves/Systeme.svelte';
 	import { display } from '$lib/components/overlay/display.svelte';
 	import { ROLE_LABELS, roleKind } from '$lib/components/overlay/helpers';
+	import Ambiance from '$lib/components/phase2/Ambiance.svelte';
+	import Document from '$lib/components/phase2/Document.svelte';
+	import Terminal from '$lib/components/phase2/Terminal.svelte';
 	import Brassage from '$lib/components/tasks/Brassage.svelte';
 	import Compilation from '$lib/components/tasks/Compilation.svelte';
 	import Memoire from '$lib/components/tasks/Memoire.svelte';
@@ -81,9 +84,22 @@
 						{/if}
 						<Reseau />
 					</div>
+				{:else if postRole === 'dev'}
+					<!-- Épreuves majeures : PERSISTANTES en phase 2 (règle n°4) -->
+					<Dev />
+				{:else if postRole === 'image'}
+					<ImageEpreuve />
+				{:else if postRole === 'systeme'}
+					<Systeme />
 				{:else if inPhase2}
-					<!-- Recyclage réel des modules en phase 2 à une étape ultérieure. -->
-					<p class="font-mono text-lg opacity-60">…</p>
+					<!-- Recyclage des tâches (game-design §9) : l'IA occupe l'espace vidé -->
+					{#if postRole === 'compilation'}
+						<Terminal />
+					{:else if postRole === 'memoire' || postRole === 'brassage' || postRole === 'parite'}
+						<Document doc={postRole} />
+					{:else}
+						<Ambiance fragment={postRole === 'synchro' ? 'synchro' : 'scan'} />
+					{/if}
 				{:else if postRole === 'compilation'}
 					<Compilation />
 				{:else if postRole === 'memoire'}
@@ -94,14 +110,8 @@
 					<Parite />
 				{:else if postRole === 'synchro'}
 					<Synchro />
-				{:else if postRole === 'scan'}
-					<Scan />
-				{:else if postRole === 'dev'}
-					<Dev />
-				{:else if postRole === 'image'}
-					<ImageEpreuve />
 				{:else}
-					<Systeme />
+					<Scan />
 				{/if}
 			{/if}
 		{/if}

@@ -108,6 +108,22 @@ export interface PublicState {
 	systeme: { locks: string[] };
 	/** Poste DEV : nombre d'échecs consécutifs (pour le message du 3e échec). */
 	devFails: number;
+	/** Terminal d'urgence (phase 2, poste COMPILATION recyclé). */
+	terminal: {
+		stage: 'auth' | 'browse' | 'core';
+		/** Réplique de l'IA après la ré-authentification. */
+		authTaunt: string | null;
+		/** Le monologue, envoyé uniquement après terminal/readCore. */
+		coreContent: string | null;
+		/** Permissions du dossier parent du noyau — true = OUVERT. Le fusil de Tchekhov. */
+		parentLocks: { x: boolean; r: boolean };
+	};
+	/** Manifestation courante de l'IA (phase 2), poussée par le serveur. */
+	manifestation: { text: string; seq: number } | null;
+	/** Écran de restitution de fin de journée (projecteur). */
+	restitution: boolean;
+	/** Fins des sessions de la journée (survit aux resets) — pour la restitution. */
+	sessionHistory: { endedAt: number; ending: 'A' | 'B' }[];
 	/** Délai d'animation de bascule par clientId (ms), poussé au moment de la bascule. */
 	basculeDelays: Record<string, number>;
 	/** Indice MJ actif par clientId. */
@@ -131,7 +147,12 @@ export type MjAction =
 	| { type: 'mj/sendHint'; clientId: string; text: string; level: number }
 	| { type: 'mj/clearHint'; clientId: string }
 	| { type: 'mj/setCalmMode'; on: boolean }
-	| { type: 'mj/startIntro' };
+	| { type: 'mj/startIntro' }
+	| { type: 'mj/showRestitution'; on: boolean };
+
+/** Symboles des dossiers de la sandbox (terminal phase 2) — ◆ est celui du robot. */
+export const TERMINAL_SYMBOLS = ['▲', '●', '◆', '■', '✦'] as const;
+export const CORE_SYMBOL = '◆';
 
 export type PostAction =
 	| { type: 'post/activate'; clientId: string }
@@ -143,7 +164,13 @@ export type PostAction =
 	| { type: 'dev/submit'; program: string[] }
 	| { type: 'image/submit'; ops: string[] }
 	| { type: 'systeme/toggle'; lock: string }
-	| { type: 'systeme/openTarget' };
+	| { type: 'systeme/openTarget' }
+	| { type: 'terminal/auth'; code: string }
+	| { type: 'terminal/openDir'; symbol: string }
+	| { type: 'terminal/readCore' }
+	| { type: 'terminal/back' }
+	| { type: 'terminal/toggleParentLock'; perm: 'x' | 'r' }
+	| { type: 'terminal/delete' };
 
 export type Action = MjAction | PostAction;
 

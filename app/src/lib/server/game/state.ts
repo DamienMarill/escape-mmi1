@@ -11,14 +11,26 @@ import { EPREUVE_IDS, POST_ROLES, TASK_IDS, TASK_PORT } from '$lib/types';
 import {
 	BASCULE_DURATION_MS,
 	BASCULE_STAGGER_MS,
+	MANIFESTATION_INTERVAL_MS,
 	RELOCK_FRACTIONS,
 	RESEAU_LOCKOUT_MS,
 	RESEAU_MAX_ATTEMPTS,
 	SEGMENT_VALUES,
 	SESSION_DURATION_MS,
+	TIME_SCALE,
 	VALIDATION_SEQUENCE_MS
 } from './constants';
 import { validateTask } from './tasks';
+import {
+	EMPTY_DIR_TEXT,
+	LOCKDOWN_REACTION,
+	MANIFESTATIONS,
+	NOYAU_CORE,
+	TERMINAL_AUTH_TAUNT
+} from './texts';
+
+/** Code du terminal : les six segments dans l'ordre de branchement (07CD3F). */
+export const TERMINAL_CODE = BRANCH_ORDER.map((p) => SEGMENT_VALUES[p]).join('');
 
 export interface SalleData {
 	/** clientId → numéro de poste (persiste entre sessions ET entre resets). */
@@ -61,6 +73,15 @@ export function initialPublicState(now: number): PublicState {
 		reseau: { entries: {}, attempts: 0, lockedUntil: null },
 		systeme: { locks: [] },
 		devFails: 0,
+		terminal: {
+			stage: 'auth',
+			authTaunt: null,
+			coreContent: null,
+			parentLocks: { x: true, r: true }
+		},
+		manifestation: null,
+		restitution: false,
+		sessionHistory: [],
 		basculeDelays: {},
 		hints: {},
 		revealedPorts: [],
@@ -78,6 +99,7 @@ export class Game {
 		this.now = opts.now ?? Date.now;
 		this.state = opts.state ?? initialPublicState(this.now());
 		this.salle = opts.salle ?? initialSalle();
+		this.state.sessionHistory = [...this.salle.history];
 	}
 
 	subscribe(fn: (state: PublicState) => void): () => void {
@@ -318,6 +340,65 @@ export class Game {
 				this.openLock('beta', 'arborescence résolue');
 				break;
 			}
+			case 'terminal/auth': {
+				if (s.phase !== 'phase2') return { ok: false, error: 'terminal indisponible' };
+				if (s.terminal.stage !== 'auth') break;
+				if (action.code.toUpperCase() !== TERMINAL_CODE)
+					return { ok: false, error: 'identifiants administrateur invalides' };
+				s.terminal.stage = 'browse';
+				s.terminal.authTaunt = TERMINAL_AUTH_TAUNT;
+				this.log('terminal : ré-authentification réussie');
+				break;
+			}
+			case 'terminal/openDir': {
+				if (s.phase !== 'phase2' || s.terminal.stage === 'auth')
+					return { ok: false, error: 'terminal verrouillé' };
+				if (action.symbol !== '◆') return { ok: false, error: EMPTY_DIR_TEXT };
+				s.terminal.stage = 'core';
+				this.log('terminal : dossier du noyau ouvert');
+				break;
+			}
+			case 'terminal/readCore': {
+				if (s.phase !== 'phase2' || s.terminal.stage !== 'core')
+					return { ok: false, error: 'aucun fichier ouvert' };
+				// Le coût du doute : lire prend du temps, les cadenas continuent de se refermer
+				s.terminal.coreContent = NOYAU_CORE;
+				this.log('terminal : noyau.core ouvert en lecture');
+				break;
+			}
+			case 'terminal/back': {
+				if (s.phase !== 'phase2' || s.terminal.stage !== 'core') break;
+				s.terminal.stage = 'browse';
+				break;
+			}
+			case 'terminal/toggleParentLock': {
+				if (s.phase !== 'phase2' || s.terminal.stage !== 'core')
+					return { ok: false, error: 'aucun dossier ouvert' };
+				const locks = s.terminal.parentLocks;
+				locks[action.perm] = !locks[action.perm];
+				if (!locks.x && !locks.r) {
+					// Rien n'indique que c'est « la solution » — l'IA, elle, comprend.
+					s.manifestation = { text: LOCKDOWN_REACTION, seq: s.seq + 1 };
+					this.log('terminal : permissions du dossier parent verrouillées');
+				}
+				break;
+			}
+			case 'terminal/delete': {
+				if (s.phase !== 'phase2' || s.terminal.stage !== 'core')
+					return { ok: false, error: 'aucun fichier sélectionné' };
+				const locks = s.terminal.parentLocks;
+				if (!locks.x && !locks.r)
+					return {
+						ok: false,
+						error: 'suppression impossible — permissions du dossier verrouillées'
+					};
+				this.endGame('A', 'suppression manuelle du noyau');
+				return { ok: true };
+			}
+			case 'mj/showRestitution': {
+				s.restitution = action.on;
+				break;
+			}
 			case 'mj/reset': {
 				this.reset();
 				return { ok: true };
@@ -401,7 +482,8 @@ export class Game {
 		const now = this.now();
 		s.phase = 'phase2';
 		s.phase2At = now;
-		const remaining = Math.max(60_000, s.chrono.durationMs - this.elapsedMs());
+		// TIME_SCALE ne compresse les refermetures qu'en test (SCALE=1 en production)
+		const remaining = Math.max(60_000, s.chrono.durationMs - this.elapsedMs()) * TIME_SCALE;
 		s.relockAt = {
 			alpha: now + remaining * RELOCK_FRACTIONS.alpha,
 			beta: now + remaining * RELOCK_FRACTIONS.beta,
@@ -447,12 +529,28 @@ export class Game {
 				(l) => s.locks[l] === 'reclosed'
 			);
 			if (allReclosed && s.ending === null) {
-				this.endGame('A', 'procédure automatique — noyau supprimé');
+				// Le fusil de Tchekhov tire ici : dossier verrouillé → la procédure
+				// automatique ne peut plus s'exécuter (Fin B). Sinon Fin A par défaut.
+				const locked = !s.terminal.parentLocks.x && !s.terminal.parentLocks.r;
+				if (locked) this.endGame('B', 'procédure automatique en échec — noyau protégé');
+				else this.endGame('A', 'procédure automatique — noyau supprimé');
 				return;
+			}
+			// Manifestations périodiques de l'IA (rattrapage sans spam après redémarrage)
+			if (s.phase2At !== null) {
+				const due = Math.floor((now - s.phase2At) / MANIFESTATION_INTERVAL_MS);
+				if (due >= this.manifestationIndex) {
+					const text = MANIFESTATIONS[(this.manifestationIndex - 1) % MANIFESTATIONS.length];
+					this.manifestationIndex = due + 1;
+					s.manifestation = { text, seq: s.seq + 1 };
+					changed = true;
+				}
 			}
 			if (changed) this.commit();
 		}
 	}
+
+	private manifestationIndex = 1;
 
 	/** Fin de partie (A ou B) : épilogue sur tous les postes, historique salle. */
 	endGame(ending: 'A' | 'B', reason: string) {
@@ -460,6 +558,7 @@ export class Game {
 		s.ending = ending;
 		s.phase = 'epilogue';
 		this.salle.history.push({ endedAt: this.now(), ending });
+		s.sessionHistory = [...this.salle.history];
 		this.log(`fin ${ending} — ${reason}`);
 		this.commit();
 	}
@@ -479,7 +578,9 @@ export class Game {
 				lockedByMj: false
 			};
 		}
+		fresh.sessionHistory = [...this.salle.history];
 		this.state = fresh;
+		this.manifestationIndex = 1;
 		this.log('reset de session');
 		this.commit();
 	}

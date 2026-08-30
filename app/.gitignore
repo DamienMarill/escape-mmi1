@@ -27,3 +27,4 @@ test-results
 # snapshots du jeu
 data/
 data-e2e/
+data-dev/
