@@ -136,6 +136,7 @@ describe('reset', () => {
 	it('restaure l’état initial en conservant numéros, plan et seq monotone', () => {
 		const { game, nowValue } = makeGame();
 		game.register('a');
+		game.setConnected('a', true);
 		game.apply({ type: 'mj/assignRole', clientId: 'a', role: 'reseau' });
 		game.apply({ type: 'post/activate', clientId: 'a' });
 		game.apply({ type: 'mj/startPhase1' });
@@ -152,6 +153,53 @@ describe('reset', () => {
 		expect(game.state.seq).toBeGreaterThan(seqBefore);
 		// Le poste garde son numéro et son rôle planifié, mais plus son activation
 		expect(game.state.posts['a']).toMatchObject({ number: 1, role: 'reseau', activated: false });
+	});
+});
+
+describe('ménage des postes fantômes', () => {
+	it('le reset purge les postes déconnectés (registre compris)', () => {
+		const { game } = makeGame();
+		game.register('vivant');
+		game.setConnected('vivant', true);
+		game.register('fantome-1');
+		game.register('fantome-2');
+		expect(Object.keys(game.state.posts)).toHaveLength(3);
+
+		game.apply({ type: 'mj/reset' });
+
+		expect(Object.keys(game.state.posts)).toEqual(['vivant']);
+		expect(game.salle.registry['fantome-1']).toBeUndefined();
+		expect(game.salle.registry['fantome-2']).toBeUndefined();
+		expect(game.salle.registry['vivant']).toBe(1);
+	});
+
+	it('mj/forgetPost retire un poste déconnecté, refuse un poste connecté', () => {
+		const { game } = makeGame();
+		game.register('a');
+		game.register('b');
+		game.setConnected('a', true);
+
+		const refused = game.apply({ type: 'mj/forgetPost', clientId: 'a' });
+		expect(refused.ok).toBe(false);
+
+		const res = game.apply({ type: 'mj/forgetPost', clientId: 'b' });
+		expect(res.ok).toBe(true);
+		expect(game.state.posts['b']).toBeUndefined();
+		expect(game.salle.registry['b']).toBeUndefined();
+	});
+
+	it('un numéro libéré est réattribué, avec le rôle du plan de salle', () => {
+		const { game } = makeGame();
+		game.register('ancien'); // numéro 1
+		game.register('autre'); // numéro 2
+		game.setConnected('autre', true);
+		game.apply({ type: 'mj/assignRole', clientId: 'ancien', role: 'dev' });
+
+		game.apply({ type: 'mj/forgetPost', clientId: 'ancien' });
+
+		// La machine de remplacement reprend le numéro 1 et hérite du rôle 'dev'
+		expect(game.register('remplacant')).toBe(1);
+		expect(game.state.posts['remplacant'].role).toBe('dev');
 	});
 });
 

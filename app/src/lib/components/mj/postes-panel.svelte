@@ -53,6 +53,10 @@
 	function distribute() {
 		connection.act({ type: 'mj/distributeRoles' });
 	}
+
+	function forget(clientId: string) {
+		connection.act({ type: 'mj/forgetPost', clientId });
+	}
 </script>
 
 <Card.Root class="xl:col-span-2">
@@ -90,6 +94,18 @@
 					{post.lockedByMj ? 'Verrouillé' : 'Verrouiller'}
 				</Button>
 				<Button size="sm" variant="ghost" onclick={() => onIndice(post.clientId)}>Indice</Button>
+				{#if !post.connected}
+					<Button
+						size="sm"
+						variant="ghost"
+						class="text-destructive"
+						title="Retire ce poste du registre (numéro réattribuable). Automatique au reset."
+						onclick={() => forget(post.clientId)}
+						data-testid="forget-post-{post.number}"
+					>
+						Oublier
+					</Button>
+				{/if}
 			</div>
 		{/each}
 		{#if posts.length === 0}

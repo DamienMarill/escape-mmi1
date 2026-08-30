@@ -145,6 +145,7 @@ export type MjAction =
 	| { type: 'mj/chronoAdd'; ms: number }
 	| { type: 'mj/cheatOpenLock'; lock: LockId }
 	| { type: 'mj/lockPost'; clientId: string; locked: boolean }
+	| { type: 'mj/forgetPost'; clientId: string }
 	| { type: 'mj/revealSegment'; port: PortId }
 	| { type: 'mj/sendHint'; clientId: string; text: string; level: number }
 	| { type: 'mj/clearHint'; clientId: string }

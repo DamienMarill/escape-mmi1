@@ -124,8 +124,11 @@ export class Game {
 	register(clientId: string): number {
 		let number = this.salle.registry[clientId];
 		if (number === undefined) {
-			const used = Object.values(this.salle.registry);
-			number = used.length === 0 ? 1 : Math.max(...used) + 1;
+			// Plus petit numéro libre : une machine de remplacement reprend le
+			// numéro (et donc le rôle planifié) d'un poste oublié.
+			const used = new Set(Object.values(this.salle.registry));
+			number = 1;
+			while (used.has(number)) number++;
 			this.salle.registry[clientId] = number;
 		}
 		if (!this.state.posts[clientId]) {
@@ -427,6 +430,18 @@ export class Game {
 				post.lockedByMj = action.locked;
 				break;
 			}
+			case 'mj/forgetPost': {
+				const post = s.posts[action.clientId];
+				if (!post) return { ok: false, error: 'poste inconnu' };
+				if (post.connected)
+					return { ok: false, error: 'poste encore connecté — le débrancher d’abord' };
+				// Le plan de salle (numéro → rôle) est conservé : la machine de
+				// remplacement qui reprendra ce numéro héritera du rôle.
+				delete s.posts[action.clientId];
+				delete this.salle.registry[action.clientId];
+				this.log(`poste ${post.number} oublié`);
+				break;
+			}
 			case 'mj/revealSegment': {
 				if (!s.revealedPorts.includes(action.port)) s.revealedPorts.push(action.port);
 				s.revealedSegments[action.port] = SEGMENT_VALUES[action.port];
@@ -583,13 +598,20 @@ export class Game {
 		this.commit();
 	}
 
-	/** Reset complet : état initial unique. Registre, plan de salle et historique survivent. */
+	/** Reset complet : état initial unique. Plan de salle et historique survivent. */
 	reset() {
 		const now = this.now();
 		const fresh = initialPublicState(now);
 		fresh.seq = this.state.seq; // seq reste monotone pour SSE
-		// Les postes connus restent identifiés avec leur rôle du plan de salle.
+		// Ménage automatique : seuls les postes CONNECTÉS survivent au reset.
+		// Une machine retirée physiquement disparaît du registre (son numéro
+		// redevient attribuable, le plan numéro → rôle est conservé).
 		for (const [clientId, post] of Object.entries(this.state.posts)) {
+			if (!post.connected) {
+				delete this.salle.registry[clientId];
+				this.log(`poste ${post.number} oublié (déconnecté au reset)`);
+				continue;
+			}
 			fresh.posts[clientId] = {
 				number: post.number,
 				role: this.salle.plan[post.number] ?? null,
