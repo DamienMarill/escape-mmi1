@@ -12,6 +12,7 @@ import {
 	BASCULE_DURATION_MS,
 	BASCULE_STAGGER_MS,
 	MANIFESTATION_INTERVAL_MS,
+	PHYSICAL_REMINDER_MS,
 	RELOCK_FRACTIONS,
 	RESEAU_LOCKOUT_MS,
 	RESEAU_MAX_ATTEMPTS,
@@ -82,6 +83,7 @@ export function initialPublicState(now: number): PublicState {
 		manifestation: null,
 		restitution: false,
 		sessionHistory: [],
+		reminders: {},
 		basculeDelays: {},
 		hints: {},
 		revealedPorts: [],
@@ -240,6 +242,7 @@ export class Game {
 				}
 				const port = TASK_PORT[task];
 				s.tasks[task] = { solved: true, segment: SEGMENT_VALUES[port] };
+				if (task === 'brassage' || task === 'scan') delete s.reminders[task];
 				this.log(`tâche ${task} résolue — port ${port} obtenu`);
 				break;
 			}
@@ -500,6 +503,23 @@ export class Game {
 	tick() {
 		const s = this.state;
 		const now = this.now();
+
+		if (s.phase === 'phase1') {
+			// Filet automatique des tâches à support physique (§12.3)
+			let reminded = false;
+			for (const task of ['brassage', 'scan'] as const) {
+				if (
+					!s.tasks[task].solved &&
+					!s.reminders[task] &&
+					this.elapsedMs() >= PHYSICAL_REMINDER_MS
+				) {
+					s.reminders[task] = true;
+					this.log(`rappel document non numérisé (${task})`);
+					reminded = true;
+				}
+			}
+			if (reminded) this.commit();
+		}
 
 		if (
 			s.finale === 'validating' &&

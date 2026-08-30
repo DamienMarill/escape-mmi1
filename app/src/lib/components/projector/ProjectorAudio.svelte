@@ -51,6 +51,7 @@
 		locks: Record<LockId, LockStatus>;
 		finale: string;
 		ending: string | null;
+		reminders: number;
 	}
 
 	let prev: Snapshot | null = null;
@@ -79,7 +80,8 @@
 			phase: state.phase,
 			locks: { ...state.locks },
 			finale: state.finale,
-			ending: state.ending
+			ending: state.ending,
+			reminders: Object.keys(state.reminders).length
 		};
 
 		if (!prev) {
@@ -101,6 +103,10 @@
 					playSrc(`/assets/audio/cadenas-${lock}.mp3`);
 				}
 			}
+		}
+
+		if (snapshot.reminders > prev.reminders) {
+			playSrc('/assets/audio/rappel-document.mp3');
 		}
 
 		if (prev.finale !== 'validating' && snapshot.finale === 'validating') {

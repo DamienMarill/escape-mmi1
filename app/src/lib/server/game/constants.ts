@@ -60,3 +60,10 @@ export const RESEAU_MAX_ATTEMPTS = 3;
 
 /** Intervalle entre deux manifestations de l'IA en phase 2. */
 export const MANIFESTATION_INTERVAL_MS = 75_000 * SCALE;
+
+/**
+ * Filet automatique (game-design §12.3) : si une tâche à support physique
+ * stagne au-delà de ce délai, le projecteur rappelle le document non numérisé.
+ * Descendre à 3 min si le playtest montre que les groupes ne se lèvent pas.
+ */
+export const PHYSICAL_REMINDER_MS = 4 * 60_000 * SCALE;

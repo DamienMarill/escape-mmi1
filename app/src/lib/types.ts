@@ -124,6 +124,8 @@ export interface PublicState {
 	restitution: boolean;
 	/** Fins des sessions de la journée (survit aux resets) — pour la restitution. */
 	sessionHistory: { endedAt: number; ending: 'A' | 'B' }[];
+	/** Filet automatique : rappels « document non numérisé » actifs au projecteur. */
+	reminders: Partial<Record<'brassage' | 'scan', boolean>>;
 	/** Délai d'animation de bascule par clientId (ms), poussé au moment de la bascule. */
 	basculeDelays: Record<string, number>;
 	/** Indice MJ actif par clientId. */

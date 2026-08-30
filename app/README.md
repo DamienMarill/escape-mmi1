@@ -1,42 +1,55 @@
-# sv
+# Escape Game Rentrée MMI1
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Implémentation du jeu décrit dans [`../game-design.md`](../game-design.md) (v0.2).
+SvelteKit 2 + Svelte 5 + adapter-node · Tailwind v4 + shadcn-svelte · SSE · aucun état hors mémoire (snapshot JSON).
 
-## Creating a project
+## Lancement MJ (jour J)
 
-If you're seeing this, you've probably already done this step. Congrats!
+```bash
+# 1. préparation machine (UNE fois, en admin) : ouvre le pare-feu
+./install.bat        # Windows  (ou sudo ./install.sh)
 
-```sh
-# create a new project
-npx sv create my-app
+# 2. build (une fois, ou après mise à jour)
+pnpm install && pnpm run build
+
+# 3. lancement du serveur de salle
+node build
 ```
 
-To recreate this project with the same configuration:
+Au démarrage, le serveur affiche :
 
-```sh
-# recreate this project
-pnpm dlx sv@0.17.0 create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:none" sveltekit-adapter="adapter:node" --no-download-check --install pnpm app
+- l'URL à ouvrir sur les **10 postes joueurs** et le **vidéoprojecteur** (`/projector`) ;
+- l'URL de la **console MJ** (`/mj?key=…`).
+
+Reset entre deux sessions : bouton **RESET** de la console MJ (affiche la checklist physique : fiche dans le manga, battant du tableau, plan lisible).
+
+## Variables d'environnement
+
+| Variable        | Défaut     | Rôle                                                         |
+| --------------- | ---------- | ------------------------------------------------------------ |
+| `PORT`          | `3000`     | Port du serveur                                              |
+| `MJ_KEY`        | `brassens` | Clé d'accès console MJ                                       |
+| `GAME_DATA_DIR` | `data/`    | Dossier des snapshots (état survit à un crash)               |
+| `TIME_SCALE`    | `1`        | **Tests uniquement** — compresse les séquences chronométrées |
+
+## Remplacer les placeholders (assets & textes)
+
+| Quoi                                         | Où                                                               |
+| -------------------------------------------- | ---------------------------------------------------------------- |
+| Vidéos (intro, bascule)                      | `static/assets/video/*.mp4`                                      |
+| Annonces & SFX                               | `static/assets/audio/*.mp3` (un fichier par annonce, mêmes noms) |
+| Textes phase 2 (monologue, manifestations)   | `src/lib/server/game/texts.ts`                                   |
+| Documents & fragments d'ambiance             | `src/lib/phase2-data.ts`                                         |
+| Image du poste IMAGE (source + détail caché) | `drawOriginal()` dans `src/lib/image-data.ts`                    |
+
+## Développement
+
+```bash
+pnpm run dev          # serveur de dev
+pnpm run verify       # check + lint + unit + e2e + audit anti-fuite
+pnpm run test:unit    # Vitest (logique serveur)
+pnpm run test:e2e     # Playwright contre le build node (comme le jour J)
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Toute la validation des énigmes est **côté serveur** (`src/lib/server/game/`) ;
+`tests/audit-bundle.mjs` vérifie qu'aucune chaîne serveur ne fuite dans le bundle client.
