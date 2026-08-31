@@ -119,7 +119,7 @@ export interface PublicState {
 		parentLocks: { x: boolean; r: boolean };
 	};
 	/** Manifestation courante de l'IA (phase 2), poussée par le serveur. */
-	manifestation: { text: string; seq: number } | null;
+	manifestation: { text: string; audio: string; seq: number } | null;
 	/** Écran de restitution de fin de journée (projecteur). */
 	restitution: boolean;
 	/** Fins des sessions de la journée (survit aux resets) — pour la restitution. */

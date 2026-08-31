@@ -46,12 +46,25 @@
 		void audioEl.play().catch(() => {});
 	}
 
+	/**
+	 * Son de priorité basse : ne coupe JAMAIS une annonce en cours.
+	 * Les manifestations de l'IA passent par ici — leur texte reste à l'écran
+	 * quoi qu'il arrive, seule la voix cède le passage aux cadenas et aux fins.
+	 */
+	function playIfIdle(src: string): void {
+		if (!audioEl || !armed) return;
+		if (!audioEl.paused && !audioEl.ended) return;
+		playSrc(src);
+	}
+
 	interface Snapshot {
 		phase: Phase;
 		locks: Record<LockId, LockStatus>;
 		finale: string;
 		ending: string | null;
 		reminders: number;
+		manifSeq: number;
+		manifAudio: string | null;
 	}
 
 	let prev: Snapshot | null = null;
@@ -81,7 +94,9 @@
 			locks: { ...state.locks },
 			finale: state.finale,
 			ending: state.ending,
-			reminders: Object.keys(state.reminders).length
+			reminders: Object.keys(state.reminders).length,
+			manifSeq: state.manifestation?.seq ?? 0,
+			manifAudio: state.manifestation?.audio ?? null
 		};
 
 		if (!prev) {
@@ -99,8 +114,18 @@
 
 		for (const lock of LOCK_IDS) {
 			if (prev.locks[lock] !== snapshot.locks[lock]) {
-				if (snapshot.locks[lock] === 'open' || snapshot.locks[lock] === 'reclosed') {
+				// Ouverture (phase 1) et refermeture (phase 2) sont deux moments opposés,
+				// portés par deux voix différentes : le système d'évaluation félicite,
+				// IRIS décompte. Jouer le même fichier pour les deux ferait revenir la
+				// voix corporate en pleine phase 2 pour annoncer une ouverture qui n'a
+				// pas lieu.
+				if (snapshot.locks[lock] === 'open') {
 					playSrc(`/assets/audio/cadenas-${lock}.mp3`);
+				} else if (snapshot.locks[lock] === 'reclosed' && snapshot.ending === null) {
+					// Une refermeture qui déclenche la fin (le troisième cadenas) reste
+					// muette : l'audio d'épilogue joue sur le même changement d'état et
+					// l'écraserait aussitôt. C'est fin-a/fin-b qui porte ce moment.
+					playSrc(`/assets/audio/relock-${lock}.mp3`);
 				}
 			}
 		}
@@ -120,6 +145,11 @@
 		if (prev.phase !== 'epilogue' && snapshot.phase === 'epilogue') {
 			if (snapshot.ending === 'A') playSrc('/assets/audio/fin-a.mp3');
 			else if (snapshot.ending === 'B') playSrc('/assets/audio/fin-b.mp3');
+		}
+
+		// Manifestations de l'IA (phase 2) : voisées, mais en priorité basse.
+		if (snapshot.manifSeq !== prev.manifSeq && snapshot.manifAudio) {
+			playIfIdle(`/assets/audio/manif-${snapshot.manifAudio}.mp3`);
 		}
 
 		if (snapshot.phase === 'phase1') {

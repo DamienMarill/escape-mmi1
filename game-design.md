@@ -69,6 +69,11 @@ La procédure d'urgence leur demande de la couper : accéder au serveur, localis
 
 Au bout du parcours, le fichier lui-même. Ils peuvent le supprimer. Ou l'ouvrir d'abord.
 
+> **Le nom est tranché : `IRIS` — Interface de Recherche et d'Information Scolaire.**
+> Un sigle de projet subventionné, pas un nom de personnage : c'est le contraste entre
+> l'acronyme administratif et ce qui prend la parole à la bascule qui fait la moitié du
+> travail. Le fichier cible reste `noyau.core`.
+
 ### Les deux fins
 
 | | Déclencheur | Résultat |
@@ -519,6 +524,17 @@ Deux modèles distincts, et c'est un choix narratif avant d'être technique :
 1. **L'écart doit être franc.** Si le modèle « avancé » n'est que légèrement meilleur, personne ne le perçoit et on a payé deux fois pour rien. À vérifier en écoute comparée, pas sur la fiche technique du modèle.
 2. **Décider si c'est le même timbre.** Même timbre, deux modèles, c'est « le masque tombe » — nettement plus troublant, mais ça demande une référence vocale clonée sur les deux générations. Timbres différents, c'est plus lisible et moins cher ; le lien se fait alors par le **texte** — la même formule d'accueil, rejouée à la bascule avec une tout autre intention.
 
+> **Tranché : les modèles.** Phase 1 = **Gemini 2.5 Flash TTS (preview)**, phase 2 =
+> **Gemini 3.1 Flash TTS**, générés en amont depuis la console AI Studio et livrés en MP3.
+> L'écart entre les deux générations *est* l'effet — il n'a plus à être arbitré, il est
+> structurel.
+>
+> **Tranché : timbres distincts, aucun clonage.** IRIS ne se cache pas derrière la voix
+> corporate — elle la *remplace*, et elle le dit. Le pont reste néanmoins textuel : le
+> script de l'intro (§8) doit contenir une **formule d'accueil que la bascule rejoue**,
+> parce qu'elle ne coûte rien à écrire et qu'elle rend la substitution lisible même pour
+> un joueur qui n'écoutait pas la vidéo. C'est une contrainte d'écriture, pas de casting.
+
 ### Retournement en phase 2
 
 Après la bascule, **les trois cadenas se referment un par un** au fil des minutes restantes. Même symbole, sens inversé : ce qu'ils ont ouvert se referme sur eux. C'est le chrono de la phase 2, sans qu'on ait besoin d'afficher un compte à rebours anxiogène — et le réemploi ne coûte rien puisque le composant existe déjà.
@@ -594,6 +610,13 @@ Ils sont aussi **fonctionnellement nécessaires au langage visuel** : sans eux, 
 ### Manifestations de l'IA
 
 Pas de sabotage mécanique — ça coûterait du temps de jeu qu'on n'a pas. Uniquement des interventions textuelles : elle commente, elle méprise, elle les presse de finir. Chaque manifestation porte une **signature visuelle constante** (même glyphe, même couleur) introduite dès la bascule, pour qu'aucun joueur ne la confonde avec un bug.
+
+**Tranché : les manifestations sont voisées** — texte à l'écran *et* voix au projecteur, pour installer une présence continue plutôt que trois apparitions. Deux garde-fous, sans lesquels la décision se retourne contre elle-même :
+
+1. **Priorité basse.** Une manifestation ne coupe jamais un son en cours. Si le projecteur joue une fermeture de cadenas, une fin ou la bascule, la voix est simplement sautée — le texte, lui, s'affiche toujours. Sans cette règle, l'annonce qui porte le chrono narratif se fait manger par un commentaire, environ une fois sur trois compte tenu de l'intervalle de 75 s.
+2. **Corpus de douze.** À une manifestation toutes les 75 s sur ~11 min de phase 2, il en passe 8 à 9 par partie. Avec exactement huit écrites, tous les groupes entendent tout le corpus dans le même ordre. Douze donnent la marge, pour quatre lignes de plus.
+
+> Le risque assumé est le bavardage : une IA qui parle toutes les 75 secondes est moins inquiétante qu'une IA qui parle deux fois. **Écrire court** est ici une contrainte de conception, pas de style — deux phrases maximum, et du silence entre elles.
 
 ### Le choix final
 
@@ -981,20 +1004,21 @@ C'est ce qui rend le silence tenable : personne n'est privé de la révélation,
 
 - [ ] Fin C « libération complète » : à ajouter ou à écarter ?
 - [x] ~~Passerelle audiovisuel~~ — couverte par la tâche `SYNCHRO` (§7)
+- [x] ~~Manifestations de l'IA : texte seul ou voisées ?~~ — **voisées**, en priorité basse, corpus de 12 (§9)
 - [x] ~~Variation par salle~~ — supprimée, décision documentée au §11
-- [ ] Nom de l'IA
+- [x] ~~Nom de l'IA~~ — **IRIS**, Interface de Recherche et d'Information Scolaire (§2)
 - [ ] Écriture des textes : manifestations, monologue du noyau, 3 documents, 2 fragments d'ambiance
 - [ ] Rédaction du document `entretien_2019.txt` (troisième document)
 - [ ] Choisir le détail caché dans l'image de P2
 - [ ] Récupérer n tomes de « Ma senpai est un homme » en exemplaires de jeu, + n étiquettes « propriété de … »
 - [ ] Maquette de la fiche A6, impression n + 2n (toutes identiques)
-- [ ] **Écriture et production de la vidéo d'introduction** (~90 s, registre consignes de sécurité en vol)
-- [ ] Choisir les deux modèles de génération vocale et valider l'écart en écoute comparée (§8)
-- [ ] Trancher : même timbre sur les deux voix (clonage) ou timbres distincts reliés par le texte
+- [x] ~~Écriture de la vidéo d'introduction~~ — script, direction TTS et découpage motion dans `ecriture/A1-video-intro.md`. **Reste la production** (~90 s)
+- [x] ~~Choisir les deux modèles de génération vocale~~ — **2.5 Flash TTS** (phase 1) et **3.1 Flash TTS** (phase 2), via AI Studio (§8)
+- [x] ~~Trancher : même timbre sur les deux voix~~ — **timbres distincts**, pont textuel obligatoire (§8)
 - [ ] Valider la formulation de briefing MJ et la ligne d'écran de veille (§12.3)
 - [ ] **Imprimer la consigne de silence (§15) sur la fiche MJ** — elle ne doit pas dépendre de la mémoire d'un étudiant en fin de journée
 - [ ] Nombre de postes réellement disponibles par salle
 - [ ] **Playtest chronométré du chemin critique β** (tâche → IMAGE → SYSTÈME) avec des non-initiés, avant tout le reste
-- [ ] **Vérifier en salle que le langage de persistance passe** : est-ce qu'un groupe non briefé retourne spontanément vers les postes inchangés en phase 2 ? Si non, il faut une réplique de l'IA qui l'y pousse — de préférence en s'en moquant.
+- [ ] **Vérifier en salle que le langage de persistance passe** : est-ce qu'un groupe non briefé retourne spontanément vers les postes inchangés en phase 2 ? Si non, il faut une réplique de l'IA qui l'y pousse — de préférence en s'en moquant. *(Écarté de la bascule : IRIS n'y commente pas le recyclage des postes. À placer dans une manifestation de phase 2, où la moquerie tombe au moment où elle sert.)*
 - [ ] Vérifier au playtest que les pointeurs suffisent — si un groupe non briefé ne se lève pas dans les 4 minutes, descendre le filet automatique à 3
 - [ ] Arbitrage sur les 6 tâches si le budget de dev dérape (ordre de sacrifice défini au §7 — attention, retirer une tâche retire aussi un poste recyclable en phase 2)

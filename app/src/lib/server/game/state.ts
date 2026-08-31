@@ -384,7 +384,11 @@ export class Game {
 				locks[action.perm] = !locks[action.perm];
 				if (!locks.x && !locks.r) {
 					// Rien n'indique que c'est « la solution » — l'IA, elle, comprend.
-					s.manifestation = { text: LOCKDOWN_REACTION, seq: s.seq + 1 };
+					s.manifestation = {
+						text: LOCKDOWN_REACTION.text,
+						audio: LOCKDOWN_REACTION.id,
+						seq: s.seq + 1
+					};
 					this.log('terminal : permissions du dossier parent verrouillées');
 				}
 				break;
@@ -575,9 +579,9 @@ export class Game {
 			if (s.phase2At !== null) {
 				const due = Math.floor((now - s.phase2At) / MANIFESTATION_INTERVAL_MS);
 				if (due >= this.manifestationIndex) {
-					const text = MANIFESTATIONS[(this.manifestationIndex - 1) % MANIFESTATIONS.length];
+					const m = MANIFESTATIONS[(this.manifestationIndex - 1) % MANIFESTATIONS.length];
 					this.manifestationIndex = due + 1;
-					s.manifestation = { text, seq: s.seq + 1 };
+					s.manifestation = { text: m.text, audio: m.id, seq: s.seq + 1 };
 					changed = true;
 				}
 			}
