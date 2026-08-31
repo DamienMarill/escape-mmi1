@@ -82,6 +82,7 @@
 		reminders: number;
 		manifSeq: number;
 		manifAudio: string | null;
+		malusSeq: number;
 	}
 
 	let prev: Snapshot | null = null;
@@ -113,7 +114,8 @@
 			ending: state.ending,
 			reminders: Object.keys(state.reminders).length,
 			manifSeq: state.manifestation?.seq ?? 0,
-			manifAudio: state.manifestation?.audio ?? null
+			manifAudio: state.manifestation?.audio ?? null,
+			malusSeq: state.malus?.seq ?? 0
 		};
 
 		if (!prev) {
@@ -127,6 +129,13 @@
 			}
 			prev = snapshot;
 			return;
+		}
+
+		// Malus : buzz d'erreur court, non voisé (l'orbe ne réagit pas). Testé
+		// en PREMIER pour qu'une annonce déclenchée dans le même lot d'états
+		// (cadenas, fin…) garde le dernier mot sur la source audio.
+		if (snapshot.malusSeq > prev.malusSeq) {
+			playSrc('/assets/audio/malus.mp3');
 		}
 
 		for (const lock of LOCK_IDS) {

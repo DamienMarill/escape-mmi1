@@ -59,6 +59,14 @@ test('bascule complète : triche 3 cadenas → VALIDER → vague sur tous les po
 	// Le projecteur annonce la validation disponible, le poste RÉSEAU montre VALIDER
 	await expect(projector.getByTestId('finale-banner')).toBeVisible();
 	await expect(posts[0].getByTestId('valider-btn')).toBeVisible();
+
+	// Guetteurs armés AVANT le clic : le glitch (fenêtre de 1,2 s, vague étalée
+	// sur 2,5 s) doit réellement se jouer sur chaque poste — pas seulement le
+	// changement de peau. C'est le trou de test qui a caché un glitch invisible.
+	const glitchSeen = posts.map((p) =>
+		p.waitForSelector('[data-testid="bascule-glitch"][data-active="true"]', { timeout: 20_000 })
+	);
+
 	await posts[0].getByTestId('valider-btn').click();
 
 	// Séquence (~1 s) puis bascule : tous les postes passent en data-phase=2
@@ -68,6 +76,9 @@ test('bascule complète : triche 3 cadenas → VALIDER → vague sur tous les po
 		});
 		await expect(post.locator('h1')).toContainText('CONFINEMENT');
 	}
+
+	// Chaque poste a joué son glitch pendant la vague
+	await Promise.all(glitchSeen);
 
 	// L'orbe d'IRIS occupe le projecteur (bascule puis phase 2 — plus de vidéo)
 	await expect(projector.getByTestId('orb')).toBeVisible();

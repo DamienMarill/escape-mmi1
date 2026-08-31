@@ -21,7 +21,9 @@ const SENTINELS = [
 	'cette ligne est intègre', // message de validation PARITÉ
 	'pistes désynchronisées', // message de validation SYNCHRO
 	'fragmentation détectée', // message de validation MÉMOIRE
-	'erreur non isolée' // message de validation COMPILATION
+	'erreur non isolée', // message de validation COMPILATION
+	'fausse manœuvre SCAN', // journal serveur (malus)
+	'fausse manœuvre TERMINAL' // journal serveur (malus)
 ];
 
 if (!fs.existsSync(CLIENT_DIR)) {

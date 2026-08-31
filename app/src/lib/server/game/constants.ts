@@ -62,6 +62,17 @@ export const SEGMENT_VALUES: Record<'A' | 'B' | 'C' | 'D' | 'E' | 'F', string> =
 export const RESEAU_LOCKOUT_MS = 30_000 * SCALE;
 export const RESEAU_MAX_ATTEMPTS = 3;
 
+/**
+ * Malus des énigmes à choix fermé brute-forçables (SCAN, répertoires du
+ * TERMINAL) : chaque fausse manœuvre coûte 1 minute — retirée au chrono en
+ * phase 1, ajoutée au transfert d'IRIS en phase 2 (le seul timer qui compte
+ * alors). NON scalé pour le chrono (temps réel), scalé côté exfiltration
+ * dans le reducer, comme la durée du transfert elle-même.
+ */
+export const MALUS_MS = 60_000;
+/** Fenêtre d'absorption : un double-clic nerveux ne compte qu'un malus. */
+export const MALUS_DEBOUNCE_MS = 3_000;
+
 /** Intervalle entre deux manifestations de l'IA en phase 2. */
 export const MANIFESTATION_INTERVAL_MS = 75_000 * SCALE;
 

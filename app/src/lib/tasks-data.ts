@@ -110,6 +110,8 @@ export const SYNCHRO_SLIDER_MAX = 10;
 // ── SCAN ── 8 machines, plage annoncée en clair ──────────────────────────────
 // Deux suspectes par recoupement ; seule la convention de nommage (fiche
 // physique INV-2019-04) tranche. La solution n'est pas dans ce fichier.
+// Tous les noms respectent la STRUCTURE [SALLE]-[TYPE]-[N°] : l'intruse ne
+// doit jamais se repérer d'un coup d'œil, sinon la fiche ne sert à rien.
 
 export const SCAN_RANGE = { from: '10.42.7.10', to: '10.42.7.30' };
 
@@ -126,7 +128,7 @@ export const SCAN_MACHINES: ScanMachine[] = [
 	{ name: 'B14-IMP-01', ip: '10.42.7.15', status: 'ONLINE', ping: '8 ms' },
 	{ name: 'B14-PC-04', ip: '10.42.7.34', status: 'ONLINE', ping: '2 ms' },
 	{ name: 'B14-SW-01', ip: '10.42.7.10', status: 'ONLINE', ping: '1 ms' },
-	{ name: 'SRV-EVAL-7', ip: '10.42.7.22', status: 'OFFLINE', ping: '4 ms' },
+	{ name: 'B14-SRV-01', ip: '10.42.7.22', status: 'OFFLINE', ping: '4 ms' },
 	{ name: 'B14-PC-07', ip: '10.42.7.19', status: 'ONLINE', ping: '2 ms' },
 	{ name: 'B14-PC-09', ip: '10.42.7.25', status: 'OFFLINE', ping: '—' }
 ];

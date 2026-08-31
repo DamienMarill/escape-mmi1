@@ -218,6 +218,61 @@
 	}
 }
 
+/* Malus (fausse manœuvre SCAN/TERMINAL) — bannière rouge en haut de tous les
+   écrans, couche événementielle. Entrée/sortie par transform+opacity, jamais
+   display:none. */
+
+.malus-banner {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	padding: 0.85rem 1.5rem;
+	font-family: var(--font-mono, monospace);
+	font-weight: 700;
+	font-size: 1.1rem;
+	letter-spacing: 0.25em;
+	text-align: center;
+	text-transform: uppercase;
+	color: #fff;
+	background-color: #b91c1c;
+	border-bottom: 2px solid #fecaca;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(-100%);
+	transition:
+		transform 300ms ease,
+		opacity 300ms ease,
+		visibility 0s linear 300ms;
+}
+
+.malus-banner.is-visible {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(0);
+	animation: malus-pulse 800ms ease-in-out 2;
+	transition:
+		transform 300ms ease,
+		opacity 300ms ease,
+		visibility 0s linear 0s;
+}
+
+@keyframes malus-pulse {
+	50% {
+		background-color: #ef4444;
+	}
+}
+
+.calm .malus-banner.is-visible {
+	animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.malus-banner.is-visible {
+		animation: none;
+	}
+}
+
 .hint-panel {
 	position: fixed;
 	right: 1.5rem;
@@ -234,9 +289,11 @@
 
 /* Bascule (game-design §14.3) — glitch plein écran, couche événementielle, décalé par poste. */
 
+/* Le conteneur déborde de 12px : les secousses (translate) des couches ne
+   révèlent jamais la page en dessous, seulement du noir — le déchirement. */
 .bascule-glitch {
 	position: fixed;
-	inset: 0;
+	inset: -12px;
 	z-index: 80;
 	overflow: hidden;
 	background-color: black;
@@ -257,19 +314,57 @@
 	inset: 0;
 }
 
+/* Une couche UNIE ne produit aucun glitch visible : translater un aplat ne
+   déplace rien à l'œil. La texture est donc dans le fond lui-même — deux
+   trames de déchirures chromatiques (rouge/cyan, pas décalés pour éviter le
+   moiré) posées sur la couleur de phase. C'est leur déplacement qui déchire. */
 .bascule-glitch__rgb {
-	background-color: var(--game-bg);
+	background:
+		repeating-linear-gradient(
+			to bottom,
+			transparent 0px,
+			transparent 12px,
+			oklch(0.62 0.26 25 / 55%) 12px,
+			oklch(0.62 0.26 25 / 55%) 15px,
+			transparent 15px,
+			transparent 34px
+		),
+		repeating-linear-gradient(
+			to bottom,
+			transparent 0px,
+			transparent 19px,
+			oklch(0.7 0.17 210 / 45%) 19px,
+			oklch(0.7 0.17 210 / 45%) 21px,
+			transparent 21px,
+			transparent 47px
+		),
+		var(--game-bg);
 }
 
 .bascule-glitch__scan {
 	background: repeating-linear-gradient(
 		to bottom,
-		oklch(1 0 0 / 8%) 0px,
-		oklch(1 0 0 / 8%) 1px,
+		oklch(1 0 0 / 12%) 0px,
+		oklch(1 0 0 / 12%) 1px,
 		transparent 1px,
 		transparent 3px
 	);
-	mix-blend-mode: overlay;
+}
+
+/* Barre de balayage CRT : descend l'écran deux fois pendant le glitch. */
+.bascule-glitch__scan::after {
+	content: '';
+	position: absolute;
+	inset-inline: 0;
+	top: -200px;
+	height: 180px;
+	background: linear-gradient(
+		to bottom,
+		transparent,
+		oklch(1 0 0 / 14%) 40%,
+		oklch(1 0 0 / 26%) 55%,
+		transparent
+	);
 }
 
 .bascule-glitch__flash {
@@ -285,33 +380,63 @@
 	animation: bascule-scan-shift 220ms steps(4, end) infinite;
 }
 
+.bascule-glitch.is-active .bascule-glitch__scan::after {
+	animation: bascule-roll 600ms linear 2;
+}
+
 .bascule-glitch.is-active .bascule-glitch__flash {
 	animation: bascule-flash-pop 1200ms steps(6, end) 1;
 }
 
+/* Les trames bougent en sens opposés (background-position) pendant que la
+   couche saute latéralement : déchirure chromatique + tremblement. */
 @keyframes bascule-rgb-shift {
 	0% {
 		transform: translate(0, 0);
+		background-position:
+			0 0,
+			0 0,
+			0 0;
 		clip-path: inset(0 0 0 0);
 	}
 	20% {
-		transform: translate(-6px, 2px);
-		clip-path: inset(10% 0 40% 0);
+		transform: translate(-9px, 2px);
+		background-position:
+			0 14px,
+			0 -9px,
+			0 0;
+		clip-path: inset(8% 0 34% 0);
 	}
 	40% {
-		transform: translate(5px, -3px);
-		clip-path: inset(60% 0 5% 0);
+		transform: translate(7px, -3px);
+		background-position:
+			0 -23px,
+			0 17px,
+			0 0;
+		clip-path: inset(52% 0 4% 0);
 	}
 	60% {
-		transform: translate(-4px, 4px);
-		clip-path: inset(30% 0 30% 0);
+		transform: translate(-6px, 4px);
+		background-position:
+			0 31px,
+			0 -26px,
+			0 0;
+		clip-path: inset(26% 0 26% 0);
 	}
 	80% {
-		transform: translate(6px, -2px);
-		clip-path: inset(5% 0 70% 0);
+		transform: translate(9px, -2px);
+		background-position:
+			0 -12px,
+			0 38px,
+			0 0;
+		clip-path: inset(4% 0 63% 0);
 	}
 	100% {
 		transform: translate(0, 0);
+		background-position:
+			0 6px,
+			0 -5px,
+			0 0;
 		clip-path: inset(0 0 0 0);
 	}
 }
@@ -322,6 +447,15 @@
 	}
 	100% {
 		transform: translateY(3px);
+	}
+}
+
+@keyframes bascule-roll {
+	from {
+		transform: translateY(0);
+	}
+	to {
+		transform: translateY(calc(100vh + 400px));
 	}
 }
 
@@ -352,12 +486,14 @@
 
 .calm .bascule-glitch__rgb,
 .calm .bascule-glitch__scan,
+.calm .bascule-glitch__scan::after,
 .calm .bascule-glitch__flash {
 	animation: none !important;
 }
 
+/* `background` (pas `background-color`) : il faut aussi écraser les trames. */
 .calm .bascule-glitch__rgb {
-	background-color: black;
+	background: black;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -367,11 +503,12 @@
 
 	.bascule-glitch__rgb,
 	.bascule-glitch__scan,
+	.bascule-glitch__scan::after,
 	.bascule-glitch__flash {
 		animation: none !important;
 	}
 
 	.bascule-glitch__rgb {
-		background-color: black;
+		background: black;
 	}
 }

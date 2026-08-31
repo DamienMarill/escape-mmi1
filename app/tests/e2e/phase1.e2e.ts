@@ -49,7 +49,7 @@ const TASK_SOLVERS: Record<string, (p: Page) => Promise<void>> = {
 		await p.getByTestId('synchro-submit').click();
 	},
 	scan: async (p) => {
-		await p.getByTestId('scan-machine-SRV-EVAL-7').click();
+		await p.getByTestId('scan-machine-B14-SRV-01').click();
 	}
 };
 

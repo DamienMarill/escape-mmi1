@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { BASCULE_DURATION_MS, VALIDATION_SEQUENCE_MS } from './constants';
+import {
+	BASCULE_DURATION_MS,
+	MALUS_DEBOUNCE_MS,
+	MALUS_MS,
+	TIME_SCALE,
+	VALIDATION_SEQUENCE_MS
+} from './constants';
 import { Game, TERMINAL_CODE } from './state';
 
 /** Amène une partie en phase 2 avec une horloge contrôlée. */
@@ -58,6 +64,30 @@ describe('terminal — navigation par symboles', () => {
 		}
 		expect(game.apply({ type: 'terminal/openDir', symbol: '◆' }).ok).toBe(true);
 		expect(game.state.terminal.stage).toBe('core');
+	});
+
+	it('un mauvais répertoire avance le transfert d’1 min (malus)', () => {
+		const { game } = authed();
+		const startedBefore = game.state.exfil!.startedAtMs;
+		game.apply({ type: 'terminal/openDir', symbol: '▲' });
+		expect(game.state.exfil!.startedAtMs).toBe(startedBefore - MALUS_MS * TIME_SCALE);
+		expect(game.state.malus).toMatchObject({ seq: 1, source: 'terminal' });
+	});
+
+	it('la rafale est absorbée, un clic espacé compte à nouveau', () => {
+		const { game, tick } = authed();
+		game.apply({ type: 'terminal/openDir', symbol: '▲' });
+		game.apply({ type: 'terminal/openDir', symbol: '●' });
+		expect(game.state.malus?.seq).toBe(1);
+		tick(MALUS_DEBOUNCE_MS + 1);
+		game.apply({ type: 'terminal/openDir', symbol: '■' });
+		expect(game.state.malus?.seq).toBe(2);
+	});
+
+	it('un symbole forgé (hors sandbox) n’inflige rien', () => {
+		const { game } = authed();
+		expect(game.apply({ type: 'terminal/openDir', symbol: 'Z' }).ok).toBe(false);
+		expect(game.state.malus).toBeNull();
 	});
 
 	it('readCore publie le monologue, back revient à browse', () => {

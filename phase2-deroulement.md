@@ -59,6 +59,9 @@ de texte, pas en refonte.
    └──────────────────────────────────────────────────┘
                      │  seul ◆ s'ouvre ; les 4 autres renvoient
                      │  « répertoire vide — dernière modification : 2019 »
+                     │  ET infligent un MALUS : le transfert d'IRIS avance
+                     │  d'1 min (bannière rouge partout + son d'erreur).
+                     │  Fouiller au hasard rapproche la Fin C.
                      │  → le symbole est celui tracé par le robot, poste DEV
                      ▼
    TERMINAL — étape 3 : LE CHOIX

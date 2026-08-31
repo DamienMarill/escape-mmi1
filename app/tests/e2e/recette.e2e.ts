@@ -40,7 +40,7 @@ async function playFullGame(
 	});
 	await act(request, { type: 'task/submit', task: 'parite', payload: { row: 5 } });
 	await act(request, { type: 'task/submit', task: 'synchro', payload: { offset: 7 } });
-	await act(request, { type: 'task/submit', task: 'scan', payload: { machine: 'SRV-EVAL-7' } });
+	await act(request, { type: 'task/submit', task: 'scan', payload: { machine: 'B14-SRV-01' } });
 	// Les 4 épreuves
 	await act(request, { type: 'dev/submit', program: ['repete-avance', 'si-mur-tourne'] });
 	await act(request, { type: 'image/submit', ops: ['superposition', 'negatif', 'contraste'] });

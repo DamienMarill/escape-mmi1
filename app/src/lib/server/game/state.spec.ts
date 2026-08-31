@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { exfilProgress } from '$lib/exfil';
-import { BASCULE_DURATION_MS, VALIDATION_SEQUENCE_MS } from './constants';
+import {
+	BASCULE_DURATION_MS,
+	MALUS_DEBOUNCE_MS,
+	MALUS_MS,
+	VALIDATION_SEQUENCE_MS
+} from './constants';
 import { Game, initialPublicState, initialSalle } from './state';
 
 /** Horloge contrôlée pour les tests. */
@@ -131,6 +136,59 @@ describe('chrono', () => {
 		const { game } = makeGame();
 		game.apply({ type: 'mj/chronoAdd', ms: -29 * 60_000 });
 		expect(game.state.chrono.durationMs).toBe(60_000);
+	});
+});
+
+describe('malus SCAN (fausse manœuvre)', () => {
+	function inPhase1() {
+		const ctx = makeGame();
+		ctx.game.apply({ type: 'mj/startPhase1' });
+		return ctx;
+	}
+
+	it('cliquer une machine légitime retire 1 min au chrono et pousse le malus', () => {
+		const { game } = inPhase1();
+		const before = game.state.chrono.durationMs;
+		const res = game.apply({
+			type: 'task/submit',
+			task: 'scan',
+			payload: { machine: 'B14-PC-04' }
+		});
+		expect(res.ok).toBe(false);
+		expect(game.state.chrono.durationMs).toBe(before - MALUS_MS);
+		expect(game.state.malus).toMatchObject({ seq: 1, source: 'scan', penaltyMs: MALUS_MS });
+		expect(game.state.journal.at(-1)?.msg).toContain('malus');
+	});
+
+	it('la rafale est absorbée, un clic espacé compte à nouveau', () => {
+		const { game, tick } = inPhase1();
+		game.apply({ type: 'task/submit', task: 'scan', payload: { machine: 'B14-PC-01' } });
+		game.apply({ type: 'task/submit', task: 'scan', payload: { machine: 'B14-PC-02' } });
+		expect(game.state.malus?.seq).toBe(1); // double-clic nerveux → un seul malus
+		tick(MALUS_DEBOUNCE_MS + 1);
+		game.apply({ type: 'task/submit', task: 'scan', payload: { machine: 'B14-PC-02' } });
+		expect(game.state.malus?.seq).toBe(2);
+	});
+
+	it('le chrono ne descend jamais sous 1 min', () => {
+		const { game } = inPhase1();
+		game.apply({ type: 'mj/chronoAdd', ms: -29 * 60_000 });
+		game.apply({ type: 'task/submit', task: 'scan', payload: { machine: 'B14-PC-07' } });
+		expect(game.state.chrono.durationMs).toBe(60_000);
+		expect(game.state.malus?.seq).toBe(1); // le malus est signalé même au plancher
+	});
+
+	it('l’échec d’une tâche sans flag penalize n’inflige rien', () => {
+		const { game } = inPhase1();
+		game.apply({ type: 'task/submit', task: 'synchro', payload: { offset: -7 } });
+		expect(game.state.malus).toBeNull();
+	});
+
+	it('la bonne machine n’inflige rien', () => {
+		const { game } = inPhase1();
+		game.apply({ type: 'task/submit', task: 'scan', payload: { machine: 'B14-SRV-01' } });
+		expect(game.state.malus).toBeNull();
+		expect(game.state.tasks.scan.solved).toBe(true);
 	});
 });
 

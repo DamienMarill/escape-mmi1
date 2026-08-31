@@ -68,7 +68,7 @@ async function solveSynchro(page: Page) {
 }
 
 async function solveScan(page: Page) {
-	await page.getByTestId('scan-machine-SRV-EVAL-7').click();
+	await page.getByTestId('scan-machine-B14-SRV-01').click();
 }
 
 const SOLVERS: Record<string, (page: Page) => Promise<void>> = {
@@ -142,6 +142,8 @@ test('une mauvaise réponse est douce : message, pas de blocage', async ({ brows
 
 	await post.getByTestId('scan-machine-B14-PC-04').click();
 	await expect(post.getByTestId('task-solved')).not.toBeVisible();
+	// SCAN est brute-forçable → la fausse manœuvre coûte : bannière rouge partout
+	await expect(post.getByTestId('malus-banner')).toBeVisible();
 	// La tâche reste jouable immédiatement
 	await solveScan(post);
 	await expect(post.getByTestId('task-solved')).toBeVisible();

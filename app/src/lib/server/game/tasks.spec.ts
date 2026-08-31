@@ -45,12 +45,17 @@ describe('validateTask — validation serveur des minis', () => {
 		expect(validateTask('synchro', { offset: -7 }).solved).toBe(false);
 	});
 
-	it('SCAN : seule l’intruse SRV-EVAL-7 est acceptée', () => {
-		expect(validateTask('scan', { machine: 'SRV-EVAL-7' }).solved).toBe(true);
+	it('SCAN : seule l’intruse B14-SRV-01 est acceptée', () => {
+		expect(validateTask('scan', { machine: 'B14-SRV-01' }).solved).toBe(true);
 		// L'autre suspecte (IP hors plage) est légitime
 		expect(validateTask('scan', { machine: 'B14-PC-04' }).solved).toBe(false);
 		expect(validateTask('scan', { machine: 'B14-PC-01' }).solved).toBe(false);
 		expect(validateTask('scan', { machine: 'INCONNUE' }).solved).toBe(false);
+	});
+
+	it('SCAN : une machine légitime déclenche le malus, une requête forgée non', () => {
+		expect(validateTask('scan', { machine: 'B14-PC-04' }).penalize).toBe(true);
+		expect(validateTask('scan', { machine: 'INCONNUE' }).penalize).toBeUndefined();
 	});
 });
 
@@ -88,7 +93,7 @@ describe('task/submit', () => {
 		const retry = game.apply({
 			type: 'task/submit',
 			task: 'scan',
-			payload: { machine: 'SRV-EVAL-7' }
+			payload: { machine: 'B14-SRV-01' }
 		});
 		expect(retry.ok).toBe(true);
 	});

@@ -134,6 +134,13 @@ export interface PublicState {
 	};
 	/** Manifestation courante de l'IA (phase 2), poussée par le serveur. */
 	manifestation: { text: string; audio: string; seq: number } | null;
+	/**
+	 * Dernier malus infligé (fausse manœuvre sur une énigme à choix fermé :
+	 * SCAN en phase 1, répertoires du TERMINAL en phase 2). `seq` est monotone :
+	 * c'est lui que les clients comparent pour déclencher bannière et son —
+	 * jamais rejoué à la resynchronisation.
+	 */
+	malus: { seq: number; at: number; source: 'scan' | 'terminal'; penaltyMs: number } | null;
 	/** Écran de restitution de fin de journée (projecteur). */
 	restitution: boolean;
 	/** Fins des sessions de la journée (survit aux resets) — pour la restitution. */

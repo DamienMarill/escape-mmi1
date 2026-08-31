@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import { INTRO_CUES } from '$lib/intro-timeline';
 	import { BASCULE_VOICE_AT_S } from '$lib/audio-cues';
+	import { BASCULE_GLITCH_MS, display } from '$lib/components/overlay/display.svelte';
 	import { initAnalyser, orbAudio, resumeAnalyser } from '$lib/client/orb-audio.svelte';
 	import type { PublicState } from '$lib/types';
 	import IntroSequence from '$lib/components/projector/IntroSequence.svelte';
@@ -108,6 +109,15 @@
 		return `${m}:${String(s).padStart(2, '0')}`;
 	}
 
+	// Aperçu du glitch de bascule : rejoue le VRAI overlay monté par le layout
+	// (mêmes couche, CSS et durée qu'en salle), sans toucher à l'état serveur.
+	let glitchPreviewTimer: ReturnType<typeof setTimeout> | undefined;
+	function previewGlitch() {
+		clearTimeout(glitchPreviewTimer);
+		display.glitching = true;
+		glitchPreviewTimer = setTimeout(() => (display.glitching = false), BASCULE_GLITCH_MS);
+	}
+
 	onMount(() => {
 		if (audioEl) audioEl.src = SCENE_SRC.intro!;
 		let raf = 0;
@@ -170,6 +180,15 @@
 					{s.label}
 				</button>
 			{/each}
+			<button
+				type="button"
+				class="chip"
+				class:on={display.glitching}
+				data-testid="regie-glitch-btn"
+				onclick={previewGlitch}
+			>
+				⚡ Glitch bascule
+			</button>
 		</div>
 
 		{#if hasTransport}

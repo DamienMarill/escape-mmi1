@@ -7,12 +7,21 @@ import { simulate, type BlockId } from '$lib/dev-sim';
 import { BASE_QUOTA, REQUIRED_LOCKS } from '$lib/systeme-data';
 import { CORRESPONDENCE_TABLE, BRANCH_ORDER } from '$lib/tasks-data';
 import type { Action, ChronoState, EpreuveId, LockId, PublicState, Role, TaskId } from '$lib/types';
-import { EPREUVE_IDS, POST_ROLES, TASK_IDS, TASK_PORT } from '$lib/types';
+import {
+	CORE_SYMBOL,
+	EPREUVE_IDS,
+	POST_ROLES,
+	TASK_IDS,
+	TASK_PORT,
+	TERMINAL_SYMBOLS
+} from '$lib/types';
 import { exfilProgress } from '$lib/exfil';
 import {
 	BASCULE_DURATION_MS,
 	BASCULE_STAGGER_MS,
 	EXFIL_FRACTION,
+	MALUS_DEBOUNCE_MS,
+	MALUS_MS,
 	MANIFESTATION_INTERVAL_MS,
 	PHYSICAL_REMINDER_MS,
 	RESEAU_LOCKOUT_MS,
@@ -82,6 +91,7 @@ export function initialPublicState(now: number): PublicState {
 			parentLocks: { x: true, r: true }
 		},
 		manifestation: null,
+		malus: null,
 		restitution: false,
 		sessionHistory: [],
 		reminders: {},
@@ -242,6 +252,7 @@ export class Game {
 				if (s.tasks[task].solved) break; // déjà résolue — idempotent
 				const result = validateTask(task, action.payload);
 				if (!result.solved) {
+					if (result.penalize) this.applyMalus('scan');
 					return { ok: false, error: result.message ?? 'tentative non concluante' };
 				}
 				const port = TASK_PORT[task];
@@ -360,7 +371,14 @@ export class Game {
 			case 'terminal/openDir': {
 				if (s.phase !== 'phase2' || s.terminal.stage === 'auth')
 					return { ok: false, error: 'terminal verrouillé' };
-				if (action.symbol !== '◆') return { ok: false, error: EMPTY_DIR_TEXT };
+				if (action.symbol !== CORE_SYMBOL) {
+					// Fouiller les répertoires au hasard a un prix : le symbole vient
+					// du poste DEV, pas de l'essai-erreur. Seuls les cinq symboles
+					// réels comptent — une requête forgée n'inflige rien.
+					if ((TERMINAL_SYMBOLS as readonly string[]).includes(action.symbol))
+						this.applyMalus('terminal');
+					return { ok: false, error: EMPTY_DIR_TEXT };
+				}
 				s.terminal.stage = 'core';
 				this.log('terminal : dossier du noyau ouvert');
 				break;
@@ -476,6 +494,35 @@ export class Game {
 		}
 		this.commit();
 		return { ok: true };
+	}
+
+	/**
+	 * Malus de fausse manœuvre (énigmes à choix fermé brute-forçables) :
+	 * −1 min au chrono en phase 1 (SCAN), +1 min au transfert d'IRIS en
+	 * phase 2 (TERMINAL) — le chrono de session ne pilote plus rien alors.
+	 * Les clients réagissent à l'incrément de `malus.seq` (bannière rouge
+	 * partout, son d'erreur au projecteur). Commit immédiat : l'action
+	 * appelante échoue et sort du reducer sans passer par le commit final.
+	 */
+	private applyMalus(source: 'scan' | 'terminal') {
+		const s = this.state;
+		const now = this.now();
+		if (s.malus && s.malus.source === source && now - s.malus.at < MALUS_DEBOUNCE_MS) return;
+		if (source === 'scan') {
+			s.chrono.durationMs = Math.max(60_000, s.chrono.durationMs - MALUS_MS);
+		} else if (s.exfil && s.exfil.frozenAtMs === null) {
+			// Reculer l'origine avance la barre. Scalé comme la durée du transfert
+			// (TIME_SCALE ne compresse qu'en test). La fin C peut tomber au tick
+			// suivant si la barre déborde — c'est le risque assumé du brute-force.
+			s.exfil.startedAtMs -= MALUS_MS * TIME_SCALE;
+		}
+		s.malus = { seq: (s.malus?.seq ?? 0) + 1, at: now, source, penaltyMs: MALUS_MS };
+		this.log(
+			source === 'scan'
+				? 'malus : fausse manœuvre SCAN — 1 min retirée au chrono'
+				: 'malus : fausse manœuvre TERMINAL — transfert avancé d’1 min'
+		);
+		this.commit();
 	}
 
 	/** Ouvre un cadenas et déclenche la validation finale si 3/3. */

@@ -361,7 +361,7 @@ Une pause. Puis la bascule.
 | **Durée cible** | 30 à 60 s, une fois qu'on a compris |
 | **Compréhension** | Instantanée, sans lire une consigne de plus de deux lignes |
 | **Interaction** | Gestuelle — cliquer, glisser, aligner. Jamais de saisie au clavier. |
-| **Échec** | Impossible. On peut recommencer indéfiniment, sans pénalité ni compteur. |
+| **Échec** | Impossible. On peut recommencer indéfiniment, sans pénalité ni compteur. **Exception : les énigmes à choix fermé brute-forçables** (`SCAN`, et le terminal de phase 2) — chaque fausse manœuvre y coûte 1 minute, annoncée par une bannière rouge sur tous les écrans et un son d'erreur au projecteur. Cliquer au hasard doit coûter plus cher que se lever chercher l'information. |
 | **Après résolution** | L'écran reste allumé, affiche le segment en très gros et le déblocage accordé. |
 | **Coût de dev** | 1 à 2 h chacun. Aucun ne doit demander de moteur, de physique ou d'asset lourd. |
 
@@ -428,7 +428,11 @@ Un `scan` déjà exécuté : huit machines listées en colonnes `NOM · IP · ST
 
 La déduction se fait par recoupement, comme un Cluedo. Deux machines sont suspectes sur les critères visibles — l'une a une IP hors de la plage annoncée en haut de l'écran, l'autre répond au ping alors qu'elle est marquée `OFFLINE`. **Seule la convention de nommage tranche entre les deux**, et elle n'est pas à l'écran : elle est sur la fiche glissée dans le manga posé dans la salle (§12).
 
+**Contrainte d'écriture des huit noms :** toutes les machines, intruse comprise, respectent la **structure** `[SALLE]-[TYPE]-[N°]` — l'intruse (`B14-SRV-01`) ne viole que le champ `TYPE`, invisible sans la fiche (`TYPE ∈ { PC, IMP, SW }`). Un nom structurellement différent se repérerait d'un coup d'œil, court-circuiterait le recoupement et rendrait la fiche décorative.
+
 Aucune connaissance réseau n'est requise : la plage est affichée en clair (`de 10.42.7.10 à 10.42.7.30`), il suffit de comparer des nombres et de lire un nom.
+
+**Anti-brute-force — le malus.** Huit machines cliquables, c'est huit clics pour épuiser l'énigme : cliquer au hasard doit donc coûter. Chaque machine légitime cliquée retire **1 minute au chrono**, avec bannière rouge sur tous les écrans (`FAUSSE MANŒUVRE — PÉNALITÉ : −1 MIN`) et son d'erreur au projecteur. Une fenêtre d'absorption de 3 s évite qu'un double-clic nerveux compte double. Même mécanique sur les cinq répertoires du terminal en phase 2 (là, c'est le transfert d'IRIS qui avance d'1 minute — le chrono qui compte alors).
 
 **Ce que ça évoque :** la détection d'intrusion. C'est ce qui reste du module « Cartographie » de la V1, compressé de quatre minutes à quarante-cinq secondes en supprimant les commandes à taper — on ne perd que la frappe, la déduction est intacte.
 **Débloque :** opération `Négatif` → **IMAGE**

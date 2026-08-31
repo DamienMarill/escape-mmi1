@@ -19,7 +19,7 @@ function solveTask(
 		brassage: { connections: { 1: 'D', 2: 'A', 3: 'F', 4: 'B', 5: 'E', 6: 'C' } },
 		parite: { row: 5 },
 		synchro: { offset: 7 },
-		scan: { machine: 'SRV-EVAL-7' }
+		scan: { machine: 'B14-SRV-01' }
 	};
 	const res = game.apply({ type: 'task/submit', task, payload: payloads[task] });
 	expect(res.ok).toBe(true);

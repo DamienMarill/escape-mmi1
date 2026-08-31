@@ -1,6 +1,8 @@
 // Validation serveur des six mini-tâches. Les solutions non déductibles
 // de l'écran (plan de câblage, machine intruse) vivent ICI et nulle part
-// ailleurs. Échec = message doux, jamais de pénalité (game-design §7).
+// ailleurs. Échec = message doux, jamais de pénalité (game-design §7) —
+// SAUF les énigmes à choix fermé brute-forçables (SCAN), qui remontent
+// `penalize` pour que le reducer inflige le malus (−1 min, son d'erreur).
 
 import {
 	COMPILATION_ERROR_INDEX,
@@ -26,8 +28,12 @@ const BRASSAGE_PLAN: Record<number, string> = {
 	6: 'C'
 };
 
-/** Nom de la machine intruse de SCAN (viole la convention INV-2019-04). */
-const SCAN_INTRUDER_NAME = 'SRV-EVAL-7';
+/**
+ * Nom de la machine intruse de SCAN. Elle a la même STRUCTURE que les autres
+ * (sinon elle se repère d'un coup d'œil et la fiche du manga ne sert à rien) :
+ * c'est son TYPE `SRV` qui viole la convention INV-2019-04 (TYPE ∈ PC/IMP/SW).
+ */
+const SCAN_INTRUDER_NAME = 'B14-SRV-01';
 
 /** Index de la ligne corrompue de PARITÉ (contrôle incohérent avec les bits). */
 const PARITE_CORRUPT_ROW = PARITE_ROWS.findIndex(
@@ -42,6 +48,8 @@ export interface TaskResult {
 	solved: boolean;
 	/** Message d'échec doux, dans la fiction — jamais culpabilisant. */
 	message?: string;
+	/** true = l'échec doit coûter un malus (énigme à choix fermé brute-forçable). */
+	penalize?: boolean;
 }
 
 type Validator = (payload: unknown) => TaskResult;
@@ -101,7 +109,11 @@ const validators: Record<TaskId, Validator> = {
 			return fail('machine inconnue');
 		return p.machine === SCAN_INTRUDER_NAME
 			? { solved: true }
-			: fail('machine légitime — recouper avec la documentation');
+			: {
+					solved: false,
+					message: 'machine légitime — recouper avec la documentation',
+					penalize: true
+				};
 	}
 };
 
