@@ -116,7 +116,7 @@ artefact fabriqué par l'IA — il a le droit d'être plat.**
 | A7 | Jalon 2 min | `audio/jalon-2min.mp3` | 2 phrases | ✅ idem |
 | A8 | Rappel document non numérisé | `audio/rappel-document.mp3` | 2 phrases, générique | ✅ idem |
 | A9 | Séquence de validation finale | `audio/validation.mp3` | 20 s, 4 clips sur grille de 5 s | ✅ `ecriture/A9-validation.md` |
-| A10 | Son d'erreur du malus (fausse manœuvre SCAN/TERMINAL) | `audio/malus.mp3` | ~1 s, buzz non voisé — pas de texte | ⏳ placeholder généré (deux tons descendants), définitif à produire |
+| A10 | Son d'erreur du malus (fausse manœuvre SCAN/TERMINAL) | `audio/malus.mp3` | ~1 s, buzz non voisé — pas de texte | ✅ buzzer définitif en place (1,2 s) |
 
 > **A2 → A8 rédigés** — `ecriture/A2-A8-annonces.md` (Scene et Sample context communs,
 > génération en un seul passage pour éviter la dérive de timbre).
