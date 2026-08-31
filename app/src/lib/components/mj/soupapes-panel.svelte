@@ -26,6 +26,10 @@
 		connection.act({ type: 'mj/revealSegment', port });
 	}
 
+	function forceValidate() {
+		connection.act({ type: 'reseau/validate' });
+	}
+
 	function sendHint(clientId: string) {
 		const draft = drafts[clientId];
 		if (!draft || !draft.text.trim()) return;
@@ -42,6 +46,24 @@
 		<Card.Title>Soupapes</Card.Title>
 	</Card.Header>
 	<Card.Content class="space-y-4">
+		<div>
+			<h3 class="mb-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+				Validation finale
+			</h3>
+			<!-- Filet si le poste RÉSEAU ne peut pas cliquer VALIDER (poste HS,
+			     bouton manqué…) : même action que le clic joueur. -->
+			<Button
+				size="sm"
+				variant="outline"
+				disabled={publicState.finale !== 'available'}
+				onclick={forceValidate}
+				data-testid="mj-force-validate"
+			>
+				{publicState.finale === 'available'
+					? 'Lancer la validation finale (à la place du poste RÉSEAU)'
+					: 'Validation finale — indisponible (3 cadenas requis)'}
+			</Button>
+		</div>
 		<div>
 			<h3 class="mb-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
 				Révélation de segment (branche γ)

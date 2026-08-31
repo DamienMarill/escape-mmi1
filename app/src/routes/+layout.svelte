@@ -45,8 +45,11 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
+<!-- `dark scheme-dark` : les composants shadcn (boutons outline, badges…)
+     doivent suivre le thème sombre du jeu — sinon boutons blancs et badges
+     illisibles sur les postes (le fond, lui, vient de --game-bg). -->
 <div
-	class="game-root"
+	class="game-root dark scheme-dark"
 	class:no-transition={noTransition}
 	class:calm={connection.state?.calmMode}
 	data-phase={display.phase}

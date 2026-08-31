@@ -57,20 +57,44 @@
 	}
 
 	const names = Object.values(CORRESPONDENCE_TABLE);
+
+	/** Valeur hexa d'un nom de la table (lookup inverse, pour l'écran résolu). */
+	function hexFor(name: string | undefined): string {
+		return Object.entries(CORRESPONDENCE_TABLE).find(([, n]) => n === name)?.[0] ?? '?';
+	}
 </script>
 
 {#if gammaOpen}
+	<!-- Règle n°4 : rien ne disparaît. La table de correspondance reste affichée,
+	     et chaque port montre SA VALEUR en très gros — c'est la table rétablie
+	     qui donne le code du terminal en phase 2 (§9). -->
 	<div class="flex flex-col items-center gap-6 p-8 text-center" data-testid="reseau-solved">
 		<p class="font-mono text-3xl tracking-widest uppercase">Table de routage rétablie</p>
-		<div class="flex gap-3 font-mono text-2xl" data-testid="reseau-final-table">
+		<div class="flex flex-wrap justify-center gap-3 font-mono" data-testid="reseau-final-table">
 			{#each BRANCH_ORDER as port (port)}
 				<div class="border px-4 py-2" style="border-color: var(--game-accent)">
 					<div class="text-xs opacity-60">port {port}</div>
-					<div>{reseau.entries[port]}</div>
+					<div class="text-5xl font-bold" style="color: var(--game-accent)">
+						{hexFor(reseau.entries[port])}
+					</div>
+					<div class="text-xs opacity-80">{reseau.entries[port]}</div>
 				</div>
 			{/each}
 		</div>
-		<p class="font-mono text-lg opacity-70">🔓 cadenas γ ouvert</p>
+		<p class="font-mono text-lg opacity-70">🔓 cadenas γ ouvert · liaison sortante disponible</p>
+		<div class="font-mono text-sm opacity-70">
+			<h2 class="mb-2 text-xs tracking-[0.3em] uppercase opacity-80">Table de correspondance</h2>
+			<table class="border-collapse text-left" data-testid="correspondence-table">
+				<tbody>
+					{#each Object.entries(CORRESPONDENCE_TABLE) as [hex, name] (hex)}
+						<tr class="border-b border-white/10">
+							<td class="py-0.5 pr-4 font-bold">{hex}</td>
+							<td>{name}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
 	</div>
 {:else}
 	<div class="grid w-full max-w-6xl gap-8 p-6 lg:grid-cols-[1fr_2fr]">

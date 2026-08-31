@@ -17,7 +17,6 @@
 	import Scan from '$lib/components/tasks/Scan.svelte';
 	import Synchro from '$lib/components/tasks/Synchro.svelte';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
 
 	let state = $derived(connection.state);
 	let me = $derived(connection.me);
@@ -93,8 +92,21 @@
 					{#if postRole === 'reseau'}
 						<div class="flex w-full flex-col items-center gap-4" data-testid="epreuve-reseau">
 							{#if state?.finale === 'available'}
-								<Button size="lg" onclick={validateFinale} data-testid="valider-btn">VALIDER</Button
-								>
+								<!-- LE bouton du jeu (« il y avait un bouton, tout à la fin. un
+								     seul. ») — il doit se voir depuis l'autre bout de la salle. -->
+								<div class="flex flex-col items-center gap-2">
+									<p class="font-mono text-sm tracking-[0.3em] uppercase opacity-80">
+										Évaluation complète — validation du profil requise
+									</p>
+									<button
+										type="button"
+										class="valider-btn"
+										onclick={validateFinale}
+										data-testid="valider-btn"
+									>
+										VALIDER
+									</button>
+								</div>
 							{:else if state?.finale === 'validating'}
 								<p class="font-mono text-lg opacity-60">VALIDATION EN COURS…</p>
 							{/if}
@@ -134,3 +146,46 @@
 		</main>
 	</div>
 {/if}
+
+<style>
+	.valider-btn {
+		padding: 1.25rem 4rem;
+		border: 3px solid var(--game-accent);
+		border-radius: 0.75rem;
+		background: color-mix(in oklch, var(--game-accent) 85%, black);
+		color: white;
+		font-family: var(--font-mono, monospace);
+		font-size: clamp(1.75rem, 4vw, 2.75rem);
+		font-weight: 700;
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		cursor: pointer;
+		animation: valider-pulse 1.8s ease-in-out infinite;
+		transition: transform 150ms ease;
+	}
+
+	.valider-btn:hover {
+		transform: scale(1.04);
+	}
+
+	@keyframes valider-pulse {
+		0%,
+		100% {
+			box-shadow: 0 0 0 0 color-mix(in oklch, var(--game-accent) 55%, transparent);
+		}
+		50% {
+			box-shadow: 0 0 2.5rem 0.5rem color-mix(in oklch, var(--game-accent) 45%, transparent);
+		}
+	}
+
+	:global(.game-root.calm) .valider-btn,
+	:global(.no-transition) .valider-btn {
+		animation: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.valider-btn {
+			animation: none;
+		}
+	}
+</style>

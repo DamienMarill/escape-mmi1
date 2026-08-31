@@ -59,7 +59,16 @@ export function syncDisplayPhase(state: PublicState, clientId: string | null) {
 		return;
 	}
 
-	const enteringBascule = prev === 'phase1' && state.phase === 'bascule';
+	// Toute ARRIVÉE en zone IRIS (bascule ou phase 2) depuis un état antérieur
+	// déclenche la vague — pas seulement phase1 → bascule : un client qui a
+	// raté l'état 'bascule' (micro-coupure SSE, onglet throttlé) doit quand
+	// même jouer son glitch au lieu de changer de peau sèchement.
+	const enteringBascule =
+		display.phase === '1' &&
+		(state.phase === 'bascule' || state.phase === 'phase2') &&
+		prev !== 'bascule' &&
+		prev !== 'phase2' &&
+		prev !== 'epilogue';
 
 	if (enteringBascule) {
 		cancelPending();
