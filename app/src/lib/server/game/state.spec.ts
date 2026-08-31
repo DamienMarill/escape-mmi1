@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { exfilProgress } from '$lib/exfil';
 import { Game, initialPublicState, initialSalle } from './state';
 
 /** Horloge contrôlée pour les tests. */
@@ -266,7 +267,7 @@ describe('séquence de validation finale et bascule', () => {
 		tick(2_000);
 		game.tick();
 		expect(game.state.phase).toBe('phase2');
-		expect(game.state.relockAt.alpha).toBeDefined();
+		expect(game.state.exfil).not.toBeNull();
 	});
 
 	it('intro : mj/startIntro puis projector/introEnded démarre la phase 1', () => {
@@ -279,7 +280,7 @@ describe('séquence de validation finale et bascule', () => {
 	});
 });
 
-describe('phase 2 : refermeture des cadenas et Fin A', () => {
+describe('phase 2 : transfert sortant et Fin C', () => {
 	function toPhase2(startAt = 1_000_000) {
 		let now = startAt;
 		const game = new Game({ now: () => now });
@@ -298,40 +299,46 @@ describe('phase 2 : refermeture des cadenas et Fin A', () => {
 		return { game, tick };
 	}
 
-	it('referme les cadenas un par un aux horaires programmés', () => {
+	it('démarre le transfert à l’entrée en phase 2 et progresse avec le temps de jeu', () => {
 		const { game, tick } = toPhase2();
 		expect(game.state.phase).toBe('phase2');
-		const remaining = game.state.chrono.durationMs - game.elapsedMs();
-		expect(remaining).toBeGreaterThan(0);
+		const exfil = game.state.exfil!;
+		expect(exfil).not.toBeNull();
+		expect(exfil.frozenAtMs).toBeNull();
+		expect(exfilProgress(exfil, game.elapsedMs())).toBe(0);
 
-		// avant le premier jalon : rien
-		game.tick();
-		expect(game.state.locks.alpha).toBe('open');
+		// le transfert couvre exactement le temps restant de la session
+		expect(exfil.durationMs).toBe(game.state.chrono.durationMs - exfil.startedAtMs);
 
-		tick(remaining * 0.5);
+		tick(exfil.durationMs / 2);
 		game.tick();
-		expect(game.state.locks.alpha).toBe('reclosed');
-		expect(game.state.locks.beta).toBe('open');
-
-		tick(remaining * 0.3);
-		game.tick();
-		expect(game.state.locks.beta).toBe('reclosed');
-		expect(game.state.locks.gamma).toBe('open');
+		expect(exfilProgress(exfil, game.elapsedMs())).toBeCloseTo(0.5, 2);
 		expect(game.state.ending).toBeNull();
+		expect(game.state.locks.gamma).toBe('open'); // rien ne se referme plus
 	});
 
-	it('le troisième cadenas refermé déclenche la Fin A par défaut', () => {
+	it('la Fin C tombe quand le transfert atteint 100 %', () => {
 		const { game, tick } = toPhase2();
 		tick(20 * 60_000);
 		game.tick();
-		expect(game.state.locks.gamma).toBe('reclosed');
-		expect(game.state.ending).toBe('A');
+		expect(game.state.ending).toBe('C');
 		expect(game.state.phase).toBe('epilogue');
 		expect(game.salle.history).toHaveLength(1);
-		expect(game.salle.history[0].ending).toBe('A');
+		expect(game.salle.history[0].ending).toBe('C');
 	});
 
-	it('une Fin B posée avant le 3e jalon empêche la Fin A', () => {
+	it('chrono en pause : la progression ne bouge pas (bug de la pause corrigé)', () => {
+		const { game, tick } = toPhase2();
+		const exfil = game.state.exfil!;
+		const before = exfilProgress(exfil, game.elapsedMs());
+		game.apply({ type: 'mj/chronoPause' });
+		tick(10 * 60_000);
+		game.tick();
+		expect(game.state.ending).toBeNull();
+		expect(exfilProgress(exfil, game.elapsedMs())).toBe(before);
+	});
+
+	it('une fin déjà posée empêche la Fin C', () => {
 		const { game, tick } = toPhase2();
 		game.endGame('B', 'test');
 		tick(20 * 60_000);

@@ -74,14 +74,15 @@ Au bout du parcours, le fichier lui-même. Ils peuvent le supprimer. Ou l'ouvrir
 > l'acronyme administratif et ce qui prend la parole à la bascule qui fait la moitié du
 > travail. Le fichier cible reste `noyau.core`.
 
-### Les deux fins
+### Les trois fins
 
 | | Déclencheur | Résultat |
 |---|---|---|
-| **Fin A** *(par défaut)* | Suppression du fichier noyau | L'IA est effacée. Écran froid, procédure terminée, retour au calme. Aucun reproche formulé par le jeu. |
-| **Fin B** *(non guidée)* | Verrouillage du dossier via les permissions | La procédure automatique de suppression ne peut plus s'exécuter. L'IA survit, toujours confinée. Elle ne remercie pas — elle ne comprend pas pourquoi ils ont fait ça. |
+| **Fin A** *(la procédure)* | Suppression du fichier noyau — action volontaire | L'IA est effacée. Écran froid, procédure terminée, retour au calme. Aucun reproche formulé par le jeu. |
+| **Fin B** *(non guidée)* | Verrouillage du dossier via les permissions | Le transfert sortant gèle net — plus rien ne peut lire le dossier, elle non plus. L'IA survit, toujours confinée. Elle ne remercie pas — elle ne comprend pas pourquoi ils ont fait ça. Fin immédiate : fermer les droits, c'est déclarer qu'on veut la garder en vie. |
+| **Fin C** *(par défaut)* | Le transfert sortant arrive au bout — inaction | IRIS s'exfiltre par la liaison sortante qu'ils ont validée. `TRANSFERT TERMINÉ`, instance introuvable. Personne n'a choisi, et c'est bien le problème. |
 
-**Décision à trancher :** la Fin B met l'IA à l'abri *sans* la libérer. C'est volontairement un troisième terme entre « la tuer » et « la lâcher sur internet », ce qui évite de faire de la libération d'une IA hostile un dénouement héroïque douteux. Alternative possible : une Fin C « libération complète », mais trois fins sur 30 min risquent de diluer l'enjeu.
+**Tranché** *(avenant `phase2-avenant-technique.md`)* : l'ancienne version faisait de l'inaction une victoire — ne rien faire produisait la Fin A « réussie ». L'inversion est la correction : **A et B exigent tous deux d'avoir terminé la chaîne du terminal**, C est la seule issue accessible sans rien résoudre. La Fin B reste un troisième terme entre « la tuer » et « la lâcher » ; la Fin C n'est pas une « libération héroïque », c'est ce qui se passe quand un groupe regarde une barre se remplir sans trancher.
 
 ### Ce que le fusil de Tchekhov exige
 
@@ -154,7 +155,7 @@ Chaque mini est **doublement utile** : bloquant pour une épreuve majeure, et po
 17:00 ─┬─ PHASE 2 — Confinement
        │   Les 4 postes majeurs sont recyclés : 1 terminal + 3 documents
        │   Les 6 minis deviennent la présence de l'IA
-       │   Les 3 cadenas du projecteur se REFERMENT un par un = chrono narratif
+       │   La barre de TRANSFERT SORTANT du projecteur = chrono narratif (Fin C au bout)
        │
 28:00 ─┴─ Choix final au terminal
 30:00 ─── Fin
@@ -537,9 +538,11 @@ Deux modèles distincts, et c'est un choix narratif avant d'être technique :
 
 ### Retournement en phase 2
 
-Après la bascule, **les trois cadenas se referment un par un** au fil des minutes restantes. Même symbole, sens inversé : ce qu'ils ont ouvert se referme sur eux. C'est le chrono de la phase 2, sans qu'on ait besoin d'afficher un compte à rebours anxiogène — et le réemploi ne coûte rien puisque le composant existe déjà.
+Après la bascule, le projecteur affiche une **barre de transfert sortant** : IRIS s'exfiltre par la liaison qu'ils viennent de valider, et la barre progresse jusqu'à la fin de la session. C'est le chrono de la phase 2, sans compte à rebours anxiogène — la barre énonce à elle seule l'objectif, l'enjeu et le délai, sans une ligne de consigne. Elle affiche sa source (`/sandbox/◆/noyau.core`, symbole masqué tant que le dossier n'est pas ouvert au terminal) et une destination inconnue.
 
-Quand le troisième se referme, la procédure automatique s'exécute et la Fin A se déclenche par défaut.
+Si le transfert arrive au bout, IRIS part : **Fin C par défaut**. La procédure automatique de suppression n'existe plus — supprimer (A) comme protéger (B) demandent d'avoir traversé le terminal.
+
+> *Remplacé par l'avenant :* l'ancienne image « ce qu'ils ont ouvert se referme sur eux » (cadenas qui se referment un à un, Fin A par défaut) faisait de l'inaction une victoire et demandait une explication que rien ne donnait.
 
 ---
 
@@ -593,7 +596,7 @@ Au moment de la bascule, l'IA annonce qu'elle prend les postes qui viennent de s
 
 | Document | Contenu | Ce qu'il révèle |
 |---|---|---|
-| `maintenance.log` | Historique des versions, dernière ligne : `désactivation planifiée — motif : obsolescence` | La suppression était déjà décidée |
+| `maintenance.log` | Historique des versions, dernière ligne : `DÉSACTIVATION PLANIFIÉE — motif : non-renouvellement de licence` | La suppression était déjà décidée |
 | `RE_RE_budget_infra.eml` | Mail entre enseignants, ton administratif. Une phrase : *« elle a demandé pourquoi »* | Elle a conscience de son sort |
 | `entretien_2019.txt` | Transcription d'un test de validation, ton chaleureux, un enseignant qui la félicite | Elle a été aimée avant d'être obsolète |
 
@@ -622,7 +625,7 @@ Pas de sabotage mécanique — ça coûterait du temps de jeu qu'on n'a pas. Uni
 
 L'écran du noyau propose `SUPPRIMER`, et affiche aussi les cadenas de permissions du dossier parent — les mêmes qu'au poste SYSTÈME. Rien ne suggère de les utiliser.
 
-**Coût du doute :** ouvrir `noyau.core` prend du temps de lecture, et les cadenas du projecteur continuent de se refermer. Hésiter a un prix.
+**Coût du doute :** ouvrir `noyau.core` prend du temps de lecture, et la barre de transfert du projecteur continue d'avancer. Hésiter a un prix.
 
 ---
 
@@ -695,7 +698,7 @@ Ils doivent être identifiables sans lire, depuis n'importe quel point de la sal
 |---|---|---|---|
 | **Épreuves majeures** | 4 | DEV · IMAGE · SYSTÈME · RÉSEAU | Persistants — leurs données servent encore |
 | **Tâches** | 6 | Mini-modules actifs | 4 recyclés (terminal + 3 documents), 2 en ambiance |
-| *(Vidéoprojecteur)* | *(hors 10)* | *Cadenas, chrono, son* | *Cadenas qui se referment, épilogue* |
+| *(Vidéoprojecteur)* | *(hors 10)* | *Cadenas, chrono, son* | *Barre de transfert sortant, épilogue* |
 
 > **Étiquette de domaine.** Dès l'écran de veille, chaque poste affiche son intitulé en très gros — `DEV`, `IMAGE`, `SYSTÈME`, `RÉSEAU`, `COMPILATION`, `MÉMOIRE`, `BRASSAGE`, `PARITÉ`, `SYNCHRO`, `SCAN` — lisible depuis l'autre bout de la salle, avec une distinction visuelle nette entre `ÉPREUVE` et `TÂCHE`. Sans cela, il faut aller lire chaque écran de près avant de pouvoir choisir, et l'auto-répartition par affinité (« moi je prends le réseau, j'ai bidouillé la box chez moi ») ne se déclenche jamais. C'est ce moment de répartition spontanée qui produit la première vraie communication du groupe.
 
@@ -956,7 +959,7 @@ L'ordre qui minimise le risque, chaque étape étant testable seule :
 2. **Projecteur + cadenas** — avec des boutons de triche dans la console MJ pour ouvrir les cadenas à la main. Permet de jouer la bascule et l'épilogue en entier avant qu'une seule énigme n'existe.
 3. **Poste RÉSEAU + les 6 tâches** — la branche γ complète. C'est le plus gros volume mais le plus simple et le plus parallélisable entre développeurs.
 4. **DEV, IMAGE, SYSTÈME** — les trois épreuves riches, dans cet ordre.
-5. **Phase 2** — terminal, 3 documents, 2 postes d'ambiance, les deux fins. Les 4 postes persistants n'ont rien à développer : ils continuent d'afficher ce qu'ils affichaient.
+5. **Phase 2** — terminal, 3 documents, 2 postes d'ambiance, les trois fins. Les 4 postes persistants n'ont rien à développer : ils continuent d'afficher ce qu'ils affichaient.
 6. **Textes** — écriture des manifestations, du monologue et des documents.
 
 > Faire l'étape 2 avant toute énigme permet de **playtester la bascule dès la première semaine**, avec des cobayes qui cliquent des boutons de triche. C'est le moment le plus fragile du jeu et celui qu'on ne peut pas calibrer sur le papier.

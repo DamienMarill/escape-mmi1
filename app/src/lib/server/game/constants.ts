@@ -32,14 +32,11 @@ export const VALIDATION_SEQUENCE_MS = 20_000 * SCALE;
 export const BASCULE_DURATION_MS = 90_000 * SCALE;
 
 /**
- * Fermeture des cadenas en phase 2 : fractions du temps restant au moment
- * de l'entrée en phase 2. Le troisième refermé déclenche la Fin A par défaut.
+ * Fraction du temps restant (à l'entrée en phase 2) au bout de laquelle le
+ * transfert sortant d'IRIS se termine — Fin C. 1 = exactement à la fin de la
+ * session ; baisser (ex. 0.95) pour laisser un battement d'épilogue.
  */
-export const RELOCK_FRACTIONS: Record<'alpha' | 'beta' | 'gamma', number> = {
-	alpha: 0.45,
-	beta: 0.75,
-	gamma: 1
-};
+export const EXFIL_FRACTION = 1;
 
 /**
  * Valeurs hexadécimales des six segments (une par port — game-design §5).

@@ -9,6 +9,13 @@
 
 	let deletions = $derived(publicState.sessionHistory.filter((s) => s.ending === 'A').length);
 	let protections = $derived(publicState.sessionHistory.filter((s) => s.ending === 'B').length);
+	let exfiltrations = $derived(publicState.sessionHistory.filter((s) => s.ending === 'C').length);
+
+	const OUTCOME_LABELS = {
+		A: 'le groupe a supprimé le noyau',
+		B: 'le groupe a protégé le noyau',
+		C: "l'instance s'est exfiltrée"
+	} as const;
 </script>
 
 {#if publicState.restitution}
@@ -19,15 +26,13 @@
 				<li class="restitution-row">
 					<span class="restitution-row__label">session {i + 1}</span>
 					<span class="restitution-row__time">{formatTime(session.endedAt)}</span>
-					<span class="restitution-row__outcome">
-						{session.ending === 'A'
-							? 'le groupe a supprimé le noyau'
-							: 'le groupe a protégé le noyau'}
-					</span>
+					<span class="restitution-row__outcome">{OUTCOME_LABELS[session.ending]}</span>
 				</li>
 			{/each}
 		</ul>
-		<p class="restitution-tally">{deletions} suppressions · {protections} protections</p>
+		<p class="restitution-tally">
+			{deletions} suppressions · {protections} protections · {exfiltrations} exfiltrations
+		</p>
 	</div>
 {:else}
 	<div class="epilogue-screen" data-ending={publicState.ending}>
@@ -35,6 +40,8 @@
 			<p class="epilogue-title cold">PROCÉDURE TERMINÉE</p>
 		{:else if publicState.ending === 'B'}
 			<p class="epilogue-title interrupted">PROCÉDURE INTERROMPUE</p>
+		{:else if publicState.ending === 'C'}
+			<p class="epilogue-title cold">TRANSFERT TERMINÉ</p>
 		{:else}
 			<p class="epilogue-title">FIN DE SESSION</p>
 		{/if}

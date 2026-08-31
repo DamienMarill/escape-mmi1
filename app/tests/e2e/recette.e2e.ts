@@ -23,7 +23,7 @@ const RESEAU_ANSWERS = {
 
 async function playFullGame(
 	request: import('@playwright/test').APIRequestContext,
-	ending: 'A' | 'B'
+	ending: 'A' | 'B' | 'C'
 ) {
 	await act(request, { type: 'mj/startPhase1' });
 	// Les 6 tâches
@@ -65,19 +65,22 @@ async function playFullGame(
 			{ timeout: 20_000 }
 		)
 		.toBe('phase2');
-	// Terminal
-	await act(request, { type: 'terminal/auth', code: TERMINAL_CODE });
-	await act(request, { type: 'terminal/openDir', symbol: '◆' });
-	if (ending === 'A') {
-		await act(request, { type: 'terminal/delete' });
-	} else {
-		await act(request, { type: 'terminal/toggleParentLock', perm: 'x' });
-		await act(request, { type: 'terminal/toggleParentLock', perm: 'r' });
+	// Terminal — la Fin C est la seule issue qui n'exige aucune action :
+	// le transfert va au bout tout seul (temps restant scalé ×0.05 → ~90 s).
+	if (ending !== 'C') {
+		await act(request, { type: 'terminal/auth', code: TERMINAL_CODE });
+		await act(request, { type: 'terminal/openDir', symbol: '◆' });
+		if (ending === 'A') {
+			await act(request, { type: 'terminal/delete' });
+		} else {
+			await act(request, { type: 'terminal/toggleParentLock', perm: 'x' });
+			await act(request, { type: 'terminal/toggleParentLock', perm: 'r' });
+		}
 	}
 	await expect
 		.poll(
 			async () => (await (await request.get('/api/state', { headers: MJ_COOKIE })).json()).ending,
-			{ timeout: 120_000 }
+			{ timeout: 150_000 }
 		)
 		.toBe(ending);
 }
@@ -94,10 +97,10 @@ function normalize(state: Record<string, unknown>) {
 	return s;
 }
 
-test('deux parties complètes d’affilée : reset → états initiaux identiques', async ({
+test('trois parties complètes d’affilée : reset → états initiaux identiques', async ({
 	request
 }) => {
-	test.setTimeout(360_000);
+	test.setTimeout(480_000);
 
 	await resetGame(request);
 	const initial1 = await (await request.get('/api/state', { headers: MJ_COOKIE })).json();
@@ -114,6 +117,12 @@ test('deux parties complètes d’affilée : reset → états initiaux identique
 	await resetGame(request);
 	const initial3 = await (await request.get('/api/state', { headers: MJ_COOKIE })).json();
 	expect(normalize(initial3)).toEqual(normalize(initial1));
-	const endings = (initial3.sessionHistory as { ending: string }[]).slice(-2).map((h) => h.ending);
-	expect(endings).toEqual(['A', 'B']);
+
+	await playFullGame(request, 'C');
+
+	await resetGame(request);
+	const initial4 = await (await request.get('/api/state', { headers: MJ_COOKIE })).json();
+	expect(normalize(initial4)).toEqual(normalize(initial1));
+	const endings = (initial4.sessionHistory as { ending: string }[]).slice(-3).map((h) => h.ending);
+	expect(endings).toEqual(['A', 'B', 'C']);
 });

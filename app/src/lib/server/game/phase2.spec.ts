@@ -64,13 +64,13 @@ describe('terminal — navigation par symboles', () => {
 		game.apply({ type: 'terminal/openDir', symbol: '◆' });
 		expect(game.state.terminal.coreContent).toBeNull();
 		game.apply({ type: 'terminal/readCore' });
-		expect(game.state.terminal.coreContent).toContain('PLACEHOLDER');
+		expect(game.state.terminal.coreContent).toBeTruthy();
 		game.apply({ type: 'terminal/back' });
 		expect(game.state.terminal.stage).toBe('browse');
 	});
 });
 
-describe('les deux fins', () => {
+describe('les trois fins', () => {
 	function atCore() {
 		const ctx = toPhase2();
 		ctx.game.apply({ type: 'terminal/auth', code: TERMINAL_CODE });
@@ -86,30 +86,40 @@ describe('les deux fins', () => {
 		expect(game.salle.history.at(-1)?.ending).toBe('A');
 	});
 
-	it('FIN B : permissions verrouillées → la procédure automatique échoue au 3e cadenas', () => {
-		const { game, tick } = atCore();
-		game.apply({ type: 'terminal/toggleParentLock', perm: 'x' });
-		game.apply({ type: 'terminal/toggleParentLock', perm: 'r' });
-		// L'IA réagit — sans révéler que c'est « la solution »
-		expect(game.state.manifestation?.text).toContain('pourquoi');
-		// SUPPRIMER est désormais impossible
-		const del = game.apply({ type: 'terminal/delete' });
-		expect(del.ok).toBe(false);
-		// Au bout du chrono, les 3 cadenas se referment → Fin B
-		tick(30 * 60_000);
-		game.tick();
-		expect(game.state.ending).toBe('B');
-		expect(game.state.phase).toBe('epilogue');
-		expect(game.salle.history.at(-1)?.ending).toBe('B');
-	});
-
-	it('rouvrir les permissions ré-autorise la suppression (Fin A)', () => {
+	it('FIN B : verrouiller x et r gèle le transfert et conclut immédiatement', () => {
 		const { game } = atCore();
 		game.apply({ type: 'terminal/toggleParentLock', perm: 'x' });
+		expect(game.state.ending).toBeNull(); // un seul verrou ne fait rien
 		game.apply({ type: 'terminal/toggleParentLock', perm: 'r' });
+		// L'IA réagit — texte affiché, sans fichier audio (repris par fin-b.mp3)
+		expect(game.state.manifestation?.text).toBeTruthy();
+		expect(game.state.manifestation?.audio).toBe('');
+		// Fin immédiate : fermer les droits, c'est déclarer qu'on veut la garder
+		expect(game.state.ending).toBe('B');
+		expect(game.state.phase).toBe('epilogue');
+		expect(game.state.exfil?.frozenAtMs).not.toBeNull();
+		expect(game.salle.history.at(-1)?.ending).toBe('B');
+		// Le gel fige la progression pour de bon
+		expect(game.apply({ type: 'terminal/delete' }).ok).toBe(false);
+	});
+
+	it('fermer une seule permission est réversible et sans conséquence', () => {
+		const { game } = atCore();
+		game.apply({ type: 'terminal/toggleParentLock', perm: 'x' });
 		game.apply({ type: 'terminal/toggleParentLock', perm: 'x' }); // rouvre
+		expect(game.state.ending).toBeNull();
+		expect(game.state.exfil?.frozenAtMs).toBeNull();
 		expect(game.apply({ type: 'terminal/delete' }).ok).toBe(true);
 		expect(game.state.ending).toBe('A');
+	});
+
+	it('FIN C : sans action au terminal, le transfert va au bout', () => {
+		const { game, tick } = toPhase2();
+		tick(30 * 60_000);
+		game.tick();
+		expect(game.state.ending).toBe('C');
+		expect(game.state.phase).toBe('epilogue');
+		expect(game.salle.history.at(-1)?.ending).toBe('C');
 	});
 });
 

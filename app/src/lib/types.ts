@@ -24,8 +24,8 @@ export type Phase = 'idle' | 'intro' | 'phase1' | 'bascule' | 'phase2' | 'epilog
 
 export const LOCK_IDS = ['alpha', 'beta', 'gamma'] as const;
 export type LockId = (typeof LOCK_IDS)[number];
-/** locked → open (phase 1) → reclosed (phase 2, les cadenas se referment). */
-export type LockStatus = 'locked' | 'open' | 'reclosed';
+/** locked → open (phase 1). Un cadenas ouvert le reste jusqu'à la fin. */
+export type LockStatus = 'locked' | 'open';
 
 export const PORT_IDS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
 export type PortId = (typeof PORT_IDS)[number];
@@ -67,6 +67,20 @@ export interface ChronoState {
 	durationMs: number;
 }
 
+/**
+ * Transfert sortant d'IRIS (phase 2) — le chrono narratif.
+ * Les trois valeurs sont exprimées en TEMPS DE JEU (`elapsedMs()`), jamais en
+ * heure murale : la pause MJ fige la progression par construction.
+ */
+export interface ExfilState {
+	/** Temps de jeu écoulé au démarrage du transfert (entrée en phase 2). */
+	startedAtMs: number;
+	/** Durée nominale du transfert, en temps de jeu. */
+	durationMs: number;
+	/** Temps de jeu écoulé au gel (Fin B), ou null si le transfert court toujours. */
+	frozenAtMs: number | null;
+}
+
 export interface TaskPublicState {
 	solved: boolean;
 	/** Valeur hexa du segment — présente UNIQUEMENT une fois la tâche résolue. */
@@ -85,7 +99,7 @@ export interface PublicState {
 	tasks: Record<TaskId, TaskPublicState>;
 	epreuves: Record<EpreuveId, { solved: boolean }>;
 	finale: 'none' | 'available' | 'validating' | 'done';
-	ending: 'A' | 'B' | null;
+	ending: 'A' | 'B' | 'C' | null;
 	/** Horodatage serveur du lancement de la vidéo d'intro. */
 	introStartedAt: number | null;
 	/** Horodatage serveur du clic VALIDER (début de la séquence bureaucratique). */
@@ -94,8 +108,8 @@ export interface PublicState {
 	basculeAt: number | null;
 	/** Horodatage serveur de l'entrée en phase 2. */
 	phase2At: number | null;
-	/** Horaires programmés de refermeture des cadenas en phase 2. */
-	relockAt: Partial<Record<LockId, number>>;
+	/** Transfert sortant (phase 2), ou null hors phase 2. */
+	exfil: ExfilState | null;
 	/** Valeurs des segments révélés au projecteur (soupape MJ uniquement). */
 	revealedSegments: Partial<Record<PortId, string>>;
 	/** Poste RÉSEAU : saisie persistante, tentatives, verrouillage anti-brute-force. */
@@ -123,7 +137,7 @@ export interface PublicState {
 	/** Écran de restitution de fin de journée (projecteur). */
 	restitution: boolean;
 	/** Fins des sessions de la journée (survit aux resets) — pour la restitution. */
-	sessionHistory: { endedAt: number; ending: 'A' | 'B' }[];
+	sessionHistory: { endedAt: number; ending: 'A' | 'B' | 'C' }[];
 	/** Filet automatique : rappels « document non numérisé » actifs au projecteur. */
 	reminders: Partial<Record<'brassage' | 'scan', boolean>>;
 	/** Délai d'animation de bascule par clientId (ms), poussé au moment de la bascule. */

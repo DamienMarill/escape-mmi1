@@ -13,7 +13,7 @@ Escape game de 30 min pour la rentrée MMI1 : 10 postes navigateur + 1 vidéopro
 
 ## Vérification
 
-`pnpm run verify` = svelte-check + eslint/prettier + Vitest + Playwright (**contre le build `node build`**, jamais vite dev, `workers: 1` car état serveur partagé) + audit anti-fuite. `TIME_SCALE=0.05` compresse validation/bascule/refermetures/lockouts en e2e (prod = 1).
+`pnpm run verify` = svelte-check + eslint/prettier + Vitest + Playwright (**contre le build `node build`**, jamais vite dev, `workers: 1` car état serveur partagé) + audit anti-fuite. `TIME_SCALE=0.05` compresse validation/bascule/exfiltration/lockouts en e2e (prod = 1). Trois fins : A supprimée (terminal/delete), B confinée (x+r fermés, immédiate), C exfiltrée (barre de transfert au bout — l'inaction est l'échec).
 
 ## Pièges connus
 

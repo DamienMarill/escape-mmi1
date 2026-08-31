@@ -52,6 +52,11 @@
 						Procédure terminée
 					</p>
 					<p class="font-mono text-sm tracking-widest uppercase opacity-70">Évaluation archivée</p>
+				{:else if state.ending === 'C'}
+					<p class="font-mono text-2xl font-semibold tracking-widest uppercase">
+						Transfert terminé
+					</p>
+					<p class="font-mono text-sm tracking-widest uppercase opacity-70">Instance introuvable</p>
 				{:else}
 					<p class="font-mono text-2xl font-semibold tracking-widest text-amber-400 uppercase">
 						Procédure interrompue

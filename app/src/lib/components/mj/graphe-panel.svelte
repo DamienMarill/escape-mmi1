@@ -9,11 +9,10 @@
 	let { publicState }: { publicState: PublicState } = $props();
 
 	const LOCK_LABELS: Record<LockId, string> = { alpha: 'α', beta: 'β', gamma: 'γ' };
-	const STATUS_LABELS = { locked: 'verrouillé', open: 'ouvert', reclosed: 'refermé' } as const;
+	const STATUS_LABELS = { locked: 'verrouillé', open: 'ouvert' } as const;
 	const STATUS_VARIANT: Record<PublicState['locks'][LockId], BadgeVariant> = {
 		locked: 'destructive',
-		open: 'default',
-		reclosed: 'secondary'
+		open: 'default'
 	};
 
 	const EPREUVE_LABELS: Record<string, string> = {

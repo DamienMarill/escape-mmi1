@@ -8,12 +8,13 @@ import { BASE_QUOTA, REQUIRED_LOCKS } from '$lib/systeme-data';
 import { CORRESPONDENCE_TABLE, BRANCH_ORDER } from '$lib/tasks-data';
 import type { Action, ChronoState, EpreuveId, LockId, PublicState, Role, TaskId } from '$lib/types';
 import { EPREUVE_IDS, POST_ROLES, TASK_IDS, TASK_PORT } from '$lib/types';
+import { exfilProgress } from '$lib/exfil';
 import {
 	BASCULE_DURATION_MS,
 	BASCULE_STAGGER_MS,
+	EXFIL_FRACTION,
 	MANIFESTATION_INTERVAL_MS,
 	PHYSICAL_REMINDER_MS,
-	RELOCK_FRACTIONS,
 	RESEAU_LOCKOUT_MS,
 	RESEAU_MAX_ATTEMPTS,
 	SEGMENT_VALUES,
@@ -39,7 +40,7 @@ export interface SalleData {
 	/** Plan de salle : numéro de poste → rôle (persiste entre resets). */
 	plan: Record<number, Role>;
 	/** Historique des sessions terminées, pour la restitution de fin de journée. */
-	history: { endedAt: number; ending: 'A' | 'B' }[];
+	history: { endedAt: number; ending: 'A' | 'B' | 'C' }[];
 }
 
 export function initialSalle(): SalleData {
@@ -69,7 +70,7 @@ export function initialPublicState(now: number): PublicState {
 		finaleValidatedAt: null,
 		basculeAt: null,
 		phase2At: null,
-		relockAt: {},
+		exfil: null,
 		revealedSegments: {},
 		reseau: { entries: {}, attempts: 0, lockedUntil: null },
 		systeme: { locks: [] },
@@ -367,7 +368,7 @@ export class Game {
 			case 'terminal/readCore': {
 				if (s.phase !== 'phase2' || s.terminal.stage !== 'core')
 					return { ok: false, error: 'aucun fichier ouvert' };
-				// Le coût du doute : lire prend du temps, les cadenas continuent de se refermer
+				// Le coût du doute : lire prend du temps, le transfert continue d'avancer
 				s.terminal.coreContent = NOYAU_CORE;
 				this.log('terminal : noyau.core ouvert en lecture');
 				break;
@@ -383,13 +384,19 @@ export class Game {
 				const locks = s.terminal.parentLocks;
 				locks[action.perm] = !locks[action.perm];
 				if (!locks.x && !locks.r) {
-					// Rien n'indique que c'est « la solution » — l'IA, elle, comprend.
+					// Fermer les droits, c'est déclarer qu'on veut la garder en vie :
+					// le transfert gèle et la partie conclut dans le même cycle (avenant §3.1).
+					// La réaction voisée d'IRIS est la première phrase de fin-b.mp3 ;
+					// le texte reste affiché, sans fichier audio associé (audio vide).
+					if (s.exfil) s.exfil.frozenAtMs = this.elapsedMs();
 					s.manifestation = {
 						text: LOCKDOWN_REACTION.text,
-						audio: LOCKDOWN_REACTION.id,
+						audio: '',
 						seq: s.seq + 1
 					};
 					this.log('terminal : permissions du dossier parent verrouillées');
+					this.endGame('B', 'transfert interrompu — noyau confiné');
+					return { ok: true };
 				}
 				break;
 			}
@@ -498,18 +505,18 @@ export class Game {
 		this.commit();
 	}
 
-	/** Entrée en phase 2 : programme la refermeture des cadenas sur le temps restant. */
+	/** Entrée en phase 2 : démarre le transfert sortant d'IRIS (le chrono narratif). */
 	enterPhase2() {
 		const s = this.state;
-		const now = this.now();
 		s.phase = 'phase2';
-		s.phase2At = now;
-		// TIME_SCALE ne compresse les refermetures qu'en test (SCALE=1 en production)
-		const remaining = Math.max(60_000, s.chrono.durationMs - this.elapsedMs()) * TIME_SCALE;
-		s.relockAt = {
-			alpha: now + remaining * RELOCK_FRACTIONS.alpha,
-			beta: now + remaining * RELOCK_FRACTIONS.beta,
-			gamma: now + remaining * RELOCK_FRACTIONS.gamma
+		s.phase2At = this.now();
+		// Indexé sur le TEMPS DE JEU : la pause MJ fige la progression par
+		// construction. TIME_SCALE ne compresse la durée qu'en test (1 en prod).
+		const remaining = Math.max(60_000, s.chrono.durationMs - this.elapsedMs());
+		s.exfil = {
+			startedAtMs: this.elapsedMs(),
+			durationMs: remaining * EXFIL_FRACTION * TIME_SCALE,
+			frozenAtMs: null
 		};
 		this.log('phase 2 — confinement');
 		this.commit();
@@ -556,23 +563,10 @@ export class Game {
 
 		if (s.phase === 'phase2') {
 			let changed = false;
-			for (const lock of ['alpha', 'beta', 'gamma'] as const) {
-				const at = s.relockAt[lock];
-				if (at !== undefined && now >= at && s.locks[lock] === 'open') {
-					s.locks[lock] = 'reclosed';
-					this.log(`cadenas ${lock} refermé`);
-					changed = true;
-				}
-			}
-			const allReclosed = (['alpha', 'beta', 'gamma'] as const).every(
-				(l) => s.locks[l] === 'reclosed'
-			);
-			if (allReclosed && s.ending === null) {
-				// Le fusil de Tchekhov tire ici : dossier verrouillé → la procédure
-				// automatique ne peut plus s'exécuter (Fin B). Sinon Fin A par défaut.
-				const locked = !s.terminal.parentLocks.x && !s.terminal.parentLocks.r;
-				if (locked) this.endGame('B', 'procédure automatique en échec — noyau protégé');
-				else this.endGame('A', 'procédure automatique — noyau supprimé');
+			// L'inaction n'est plus une victoire : quand le transfert arrive au
+			// bout, IRIS part (Fin C). A et B exigent d'avoir fini le terminal.
+			if (s.exfil && s.ending === null && exfilProgress(s.exfil, this.elapsedMs()) >= 1) {
+				this.endGame('C', 'transfert terminé — noyau exfiltré');
 				return;
 			}
 			// Manifestations périodiques de l'IA (rattrapage sans spam après redémarrage)
@@ -591,8 +585,8 @@ export class Game {
 
 	private manifestationIndex = 1;
 
-	/** Fin de partie (A ou B) : épilogue sur tous les postes, historique salle. */
-	endGame(ending: 'A' | 'B', reason: string) {
+	/** Fin de partie (A, B ou C) : épilogue sur tous les postes, historique salle. */
+	endGame(ending: 'A' | 'B' | 'C', reason: string) {
 		const s = this.state;
 		s.ending = ending;
 		s.phase = 'epilogue';

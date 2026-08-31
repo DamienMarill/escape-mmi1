@@ -54,7 +54,7 @@ test('FIN A : terminal → auth → ◆ → lecture du noyau → SUPPRIMER → �
 
 	await authAndOpenCore(post);
 	await post.getByTestId('terminal-read').click();
-	await expect(post.getByTestId('terminal')).toContainText('PLACEHOLDER');
+	await expect(post.getByTestId('terminal-core-content')).toBeVisible();
 
 	await post.getByTestId('terminal-delete').click();
 	await expect(post.getByTestId('epilogue-screen')).toHaveAttribute('data-ending', 'A');
@@ -64,30 +64,52 @@ test('FIN A : terminal → auth → ◆ → lecture du noyau → SUPPRIMER → �
 	await witness.context().close();
 });
 
-test('FIN B : permissions verrouillées → SUPPRIMER échoue → la procédure échoue au 3e cadenas', async ({
+test('FIN B : verrouiller x et r gèle le transfert et conclut immédiatement', async ({
 	browser,
 	request
 }) => {
-	test.setTimeout(180_000); // la refermeture du 3e cadenas prend ~90 s même scalée
+	const post = await openPost(browser, BASE);
+	const clientId = await clientIdOf(post);
+	await act(request, { type: 'mj/assignRole', clientId, role: 'compilation' });
+	const projCtx = await browser.newContext({ baseURL: BASE });
+	const projector = await projCtx.newPage();
+	await projector.goto('/projector');
+	await toPhase2(request);
+
+	await expect(projector.getByTestId('exfil-panel')).toBeVisible();
+	// Le symbole du répertoire n'est pas révélé avant l'ouverture du dossier
+	await expect(projector.getByTestId('exfil-panel')).not.toContainText('◆');
+
+	await authAndOpenCore(post);
+	await expect(projector.getByTestId('exfil-panel')).toContainText('/sandbox/◆/noyau.core');
+
+	// Fermer un seul verrou ne conclut pas
+	await post.getByTestId('parent-lock-x').click();
+	await expect(post.getByTestId('terminal-delete')).toBeVisible();
+
+	// Le second verrou déclenche la Fin B dans le même cycle
+	await post.getByTestId('parent-lock-r').click();
+	await expect(post.getByTestId('epilogue-screen')).toHaveAttribute('data-ending', 'B');
+
+	const state = await (await request.get('/api/state', { headers: MJ_COOKIE })).json();
+	expect(state.sessionHistory.at(-1).ending).toBe('B');
+	expect(state.exfil.frozenAtMs).not.toBeNull();
+	await post.context().close();
+	await projCtx.close();
+});
+
+test('FIN C : sans action au terminal, le transfert va au bout', async ({ browser, request }) => {
+	test.setTimeout(240_000); // le transfert scalé ×0.05 dure ~90 s
 	const post = await openPost(browser, BASE);
 	const clientId = await clientIdOf(post);
 	await act(request, { type: 'mj/assignRole', clientId, role: 'compilation' });
 	await toPhase2(request);
 
-	await authAndOpenCore(post);
-	await post.getByTestId('parent-lock-x').click();
-	await post.getByTestId('parent-lock-r').click();
-
-	// SUPPRIMER est désormais refusé
-	await post.getByTestId('terminal-delete').click();
-	await expect(post.getByTestId('terminal-feedback')).toContainText(/impossible|verrouill/i);
-
-	// Le 3e cadenas se referme (temps restant scalé ×0.05 → ~90 s max) → Fin B
-	await expect(post.getByTestId('epilogue-screen')).toHaveAttribute('data-ending', 'B', {
-		timeout: 120_000
+	await expect(post.getByTestId('epilogue-screen')).toHaveAttribute('data-ending', 'C', {
+		timeout: 150_000
 	});
 	const state = await (await request.get('/api/state', { headers: MJ_COOKIE })).json();
-	expect(state.sessionHistory.at(-1).ending).toBe('B');
+	expect(state.sessionHistory.at(-1).ending).toBe('C');
 	await post.context().close();
 });
 

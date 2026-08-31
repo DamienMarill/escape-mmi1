@@ -113,20 +113,8 @@
 		}
 
 		for (const lock of LOCK_IDS) {
-			if (prev.locks[lock] !== snapshot.locks[lock]) {
-				// Ouverture (phase 1) et refermeture (phase 2) sont deux moments opposés,
-				// portés par deux voix différentes : le système d'évaluation félicite,
-				// IRIS décompte. Jouer le même fichier pour les deux ferait revenir la
-				// voix corporate en pleine phase 2 pour annoncer une ouverture qui n'a
-				// pas lieu.
-				if (snapshot.locks[lock] === 'open') {
-					playSrc(`/assets/audio/cadenas-${lock}.mp3`);
-				} else if (snapshot.locks[lock] === 'reclosed' && snapshot.ending === null) {
-					// Une refermeture qui déclenche la fin (le troisième cadenas) reste
-					// muette : l'audio d'épilogue joue sur le même changement d'état et
-					// l'écraserait aussitôt. C'est fin-a/fin-b qui porte ce moment.
-					playSrc(`/assets/audio/relock-${lock}.mp3`);
-				}
+			if (prev.locks[lock] !== snapshot.locks[lock] && snapshot.locks[lock] === 'open') {
+				playSrc(`/assets/audio/cadenas-${lock}.mp3`);
 			}
 		}
 
@@ -145,9 +133,12 @@
 		if (prev.phase !== 'epilogue' && snapshot.phase === 'epilogue') {
 			if (snapshot.ending === 'A') playSrc('/assets/audio/fin-a.mp3');
 			else if (snapshot.ending === 'B') playSrc('/assets/audio/fin-b.mp3');
+			else if (snapshot.ending === 'C') playSrc('/assets/audio/fin-c.mp3');
 		}
 
 		// Manifestations de l'IA (phase 2) : voisées, mais en priorité basse.
+		// La réaction au verrouillage (Fin B) arrive avec un audio vide : son
+		// texte s'affiche, sa voix est la première phrase de fin-b.mp3.
 		if (snapshot.manifSeq !== prev.manifSeq && snapshot.manifAudio) {
 			playIfIdle(`/assets/audio/manif-${snapshot.manifAudio}.mp3`);
 		}

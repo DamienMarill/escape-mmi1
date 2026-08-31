@@ -88,11 +88,6 @@
 		transform: rotate(-50deg);
 	}
 
-	.lock-icon-wrap[data-status='reclosed'] {
-		--lock-stroke: oklch(0.62 0.2 25);
-		--lock-body: oklch(0.5 0.2 25);
-	}
-
 	.lock-letter {
 		font-size: clamp(2rem, 3.2vw, 3rem);
 		font-weight: 700;

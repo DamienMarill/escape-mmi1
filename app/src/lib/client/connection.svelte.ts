@@ -27,6 +27,7 @@ export class Connection {
 			// Test local multi-onglets : `/?poste=2` isole l'identité par valeur.
 			// (Sans le paramètre — cas nominal du jour J — une machine = une identité,
 			// partagée entre onglets et persistante entre rechargements.)
+			// eslint-disable-next-line svelte/prefer-svelte-reactivity -- lecture ponctuelle de l'URL, rien de réactif
 			const slot = new URLSearchParams(location.search).get('poste');
 			const storageKey = slot ? `${STORAGE_KEY}-${slot}` : STORAGE_KEY;
 			const stored = localStorage.getItem(storageKey) ?? undefined;

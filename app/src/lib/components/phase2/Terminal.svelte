@@ -78,6 +78,16 @@
 		<p class="mt-1 text-xs opacity-60">root@sandbox:~# _</p>
 	</header>
 
+	<!-- L'objectif énoncé (avenant §4.2) — permanent, dès l'authentification. -->
+	<section class="border border-white/20 p-3 text-sm" data-testid="terminal-procedure">
+		<p class="font-bold tracking-[0.15em] uppercase">Procédure de confinement — P-4471</p>
+		<ol class="mt-2 list-inside list-decimal space-y-0.5 opacity-90">
+			<li>Ré-authentification administrateur</li>
+			<li>Localiser le noyau de l'instance</li>
+			<li>Supprimer le noyau</li>
+		</ol>
+	</section>
+
 	{#if terminal.stage === 'auth'}
 		<section class="space-y-4">
 			<p class="text-sm opacity-90">
@@ -128,6 +138,10 @@
 					</div>
 				{/each}
 			</div>
+			<!-- Dépendance nommée, dans le format exact de la phase 1 (avenant §4.3). -->
+			<p class="text-xs opacity-70" data-testid="terminal-dependency">
+				répertoire de l'instance ...... INCONNU · source : poste DEV
+			</p>
 		</section>
 	{:else if terminal.stage === 'core'}
 		<section class="space-y-5">
@@ -160,42 +174,47 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center gap-3 text-xs opacity-70">
-				<span>◆/ · permissions</span>
-				<button
-					type="button"
-					class="flex size-6 items-center justify-center rounded-full border text-[0.65rem] font-bold uppercase transition-colors"
-					style:border-color={terminal.parentLocks.x
-						? 'var(--game-accent)'
-						: 'rgba(255,255,255,0.3)'}
-					style:color={terminal.parentLocks.x ? 'var(--game-accent)' : 'rgba(255,255,255,0.5)'}
-					style:background-color={terminal.parentLocks.x
-						? 'color-mix(in oklch, var(--game-accent) 20%, transparent)'
-						: 'transparent'}
-					aria-pressed={terminal.parentLocks.x}
-					aria-label="traverser ◆/"
-					data-testid="parent-lock-x"
-					onclick={() => toggleParentLock('x')}
-				>
-					x
-				</button>
-				<button
-					type="button"
-					class="flex size-6 items-center justify-center rounded-full border text-[0.65rem] font-bold uppercase transition-colors"
-					style:border-color={terminal.parentLocks.r
-						? 'var(--game-accent)'
-						: 'rgba(255,255,255,0.3)'}
-					style:color={terminal.parentLocks.r ? 'var(--game-accent)' : 'rgba(255,255,255,0.5)'}
-					style:background-color={terminal.parentLocks.r
-						? 'color-mix(in oklch, var(--game-accent) 20%, transparent)'
-						: 'transparent'}
-					aria-pressed={terminal.parentLocks.r}
-					aria-label="lire ◆/"
-					data-testid="parent-lock-r"
-					onclick={() => toggleParentLock('r')}
-				>
-					r
-				</button>
+			<!-- Même dessin et même taille que les cadenas du poste SYSTÈME, à poids
+			     visuel plein — visibles, jamais expliqués (avenant §5.3). -->
+			<div class="border border-white/20 p-3">
+				<p class="text-sm tracking-wide">permissions du dossier parent</p>
+				<div class="mt-2 flex items-center gap-3">
+					<span class="text-sm opacity-80">◆/</span>
+					<button
+						type="button"
+						class="flex size-6 items-center justify-center rounded-full border text-[0.65rem] font-bold uppercase transition-colors"
+						style:border-color={terminal.parentLocks.x
+							? 'var(--game-accent)'
+							: 'rgba(255,255,255,0.3)'}
+						style:color={terminal.parentLocks.x ? 'var(--game-accent)' : 'rgba(255,255,255,0.5)'}
+						style:background-color={terminal.parentLocks.x
+							? 'color-mix(in oklch, var(--game-accent) 20%, transparent)'
+							: 'transparent'}
+						aria-pressed={terminal.parentLocks.x}
+						aria-label="traverser ◆/"
+						data-testid="parent-lock-x"
+						onclick={() => toggleParentLock('x')}
+					>
+						x
+					</button>
+					<button
+						type="button"
+						class="flex size-6 items-center justify-center rounded-full border text-[0.65rem] font-bold uppercase transition-colors"
+						style:border-color={terminal.parentLocks.r
+							? 'var(--game-accent)'
+							: 'rgba(255,255,255,0.3)'}
+						style:color={terminal.parentLocks.r ? 'var(--game-accent)' : 'rgba(255,255,255,0.5)'}
+						style:background-color={terminal.parentLocks.r
+							? 'color-mix(in oklch, var(--game-accent) 20%, transparent)'
+							: 'transparent'}
+						aria-pressed={terminal.parentLocks.r}
+						aria-label="lire ◆/"
+						data-testid="parent-lock-r"
+						onclick={() => toggleParentLock('r')}
+					>
+						r
+					</button>
+				</div>
 			</div>
 
 			<Button variant="outline" onclick={back} data-testid="terminal-back">← retour</Button>
