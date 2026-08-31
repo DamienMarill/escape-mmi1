@@ -200,16 +200,20 @@ Tous en placeholders dans le code. Structure stable : **remplacer les chaînes s
 
 | # | Livrable | Emplacement | Format cible | Statut |
 |---|---|---|---|---|
-| C1 | **Monologue `noyau.core`** | `server/game/texts.ts` → `NOYAU_CORE` | lisible en 60-90 s | placeholder |
-| C2 | `maintenance.log` | `phase2-data.ts` → `PHASE2_DOCS.memoire` | 6-8 lignes de journal | placeholder |
-| C3 | `RE_RE_budget_infra.eml` | `PHASE2_DOCS.brassage` | mail court, ton administratif | placeholder |
-| C4 | `entretien_2019.txt` | `PHASE2_DOCS.parite` | transcription, ton chaleureux | placeholder |
-| C5 | Fragment d'ambiance 1 | `AMBIANCE_FRAGMENTS.synchro` | 1 paragraphe | placeholder |
-| C6 | Fragment d'ambiance 2 | `AMBIANCE_FRAGMENTS.scan` | 1 paragraphe | placeholder |
-| C7 | Raillerie de ré-authentification | `texts.ts` → `TERMINAL_AUTH_TAUNT` | 1-2 phrases | placeholder |
-| C8 | **12 manifestations** | `texts.ts` → `MANIFESTATIONS` | 2 phrases max chacune · **voisées** | 12 slots créés, 8 à réécrire + 4 à écrire |
-| C9 | Réaction au verrouillage (Fin B) | `texts.ts` → `LOCKDOWN_REACTION` | 1 phrase | placeholder |
+| C1 | **Monologue `noyau.core`** | `server/game/texts.ts` → `NOYAU_CORE` | lisible en 60-90 s | ✅ `ecriture/C1-noyau-core.md` · appliqué au code |
+| C2 | `maintenance.log` | `phase2-data.ts` → `PHASE2_DOCS.memoire` | 6-8 lignes de journal | ✅ `ecriture/C2-maintenance-log.md` · appliqué |
+| C3 | `RE_RE_budget_infra.eml` | `PHASE2_DOCS.brassage` | mail court, ton administratif | ✅ `ecriture/C3-mail-budget.md` · appliqué |
+| C4 | `entretien_2019.txt` | `PHASE2_DOCS.parite` | transcription, ton chaleureux | ✅ `ecriture/C4-entretien-2019.md` · appliqué |
+| C5 | Fragment d'ambiance 1 | `AMBIANCE_FRAGMENTS.synchro` | 1 paragraphe | ✅ `ecriture/C5-fragment-synchro.md` · appliqué |
+| C6 | Fragment d'ambiance 2 | `AMBIANCE_FRAGMENTS.scan` | 1 paragraphe | ✅ `ecriture/C6-fragment-scan.md` · appliqué |
+| C7 | Raillerie de ré-authentification | `texts.ts` → `TERMINAL_AUTH_TAUNT` | 1-2 phrases | ✅ `ecriture/C7-auth-taunt.md` · appliqué |
+| C8 | **12 manifestations** | `texts.ts` → `MANIFESTATIONS` | 2 phrases max chacune · **voisées** | ✅ `ecriture/C8-manifestations.md` · appliqué — 12 MP3 à générer |
+| C9 | Réaction au verrouillage (Fin B) | `texts.ts` → `LOCKDOWN_REACTION` | 1 phrase | ✅ `ecriture/C9-lockdown.md` · texte écran seul, plus de MP3 |
 | C10 | Texte de dossier vide | `texts.ts` → `EMPTY_DIR_TEXT` | 1 ligne | **acceptable tel quel** |
+
+> **Frise chronologique posée** — `ecriture/frise-canon.md` (§6.1/§6.2 réglés : jour J =
+> 1ᵉʳ septembre 2026, désactivation du log au **2026-09-14** = J+13, cast et règles
+> transverses). Toute retouche des textes C passe par elle.
 
 ### Note sur C8
 
@@ -233,7 +237,7 @@ pas long et beau.
 | # | Livrable | Support | Statut |
 |---|---|---|---|
 | D1 | Fiche A6 `INV-2019-04` | Print, n + 2n exemplaires | Contenu **déjà spécifié** (§12.1) — reste la maquette |
-| D2 | Étiquette « propriété de … » | Print, n exemplaires | Reste à choisir **le nom** |
+| D2 | Étiquette « propriété de … » | Print, n exemplaires | Nom proposé : **Camille Ferrand** (`frise-canon.md` §2 — même nom que le badge `VIS-042` et l'expéditeur du mail C3) — à valider |
 | D3 | Briefing MJ d'ouverture | Fiche MJ | Formule **déjà rédigée** (§12.3) — à mettre en page |
 | D4 | Consigne de silence | Fiche MJ | **Déjà rédigée** (§15) — à imprimer, pas à réécrire |
 | D5 | Plan de câblage au tableau | Craie | **Déjà figé** (§12.2) — 6 correspondances |
@@ -292,26 +296,22 @@ la décision 1.3 : les manifestations pèsent plus de la moitié du volume de g�
 vocale du projet, pour un huitième de son volume de texte. C'est le vrai coût de la
 décision, et il est en génération/montage, pas en écriture.
 
-### Ordre d'écriture
+### Ordre d'écriture — ✅ intégralement parcouru
 
 1. ~~Trancher le nom~~ — **IRIS**, fait.
-2. **Poser la frise chronologique** (§6.2) et corriger la date du log (§6.1).
-   *C'est maintenant la première tâche.*
-3. **Écrire C2 · C3 · C4** — les trois documents, ensemble, à partir de la frise.
-   Ils fixent le passé d'IRIS, donc son registre.
-4. **Écrire C1** — le monologue du noyau. C'est lui qui fixe sa voix.
-5. **Écrire B1** — la bascule. Elle découle de C1, jamais l'inverse : on écrit d'abord
-   ce qu'elle est, ensuite ce qu'elle crie. Attention à la réserve du §1.2.
-6. **Écrire A1** — le script de l'intro, avec la formule d'accueil rejouable et le sigle déplié.
-7. **Écrire A2-A9** — les annonces. Mécaniques, rapides, une fois le ton posé.
-8. **Écrire C8** — les 12 manifestations. Après B1, parce qu'elles doivent tenir la
-   même voix sur deux phrases.
-9. **Écrire B2 · B3** — les deux fins. En dernier : ce sont les seuls textes qui doivent
-   *répondre* à tout le reste.
-10. **C5-C7, C9**, puis **D2**. Finition, parallélisable.
+2. ~~Poser la frise chronologique et corriger la date du log~~ — `ecriture/frise-canon.md`.
+3. ~~Écrire C2 · C3 · C4~~ — fait, à partir de la frise.
+4. ~~Écrire C1~~ — fait (tranche la contradiction de B1, cf. sa fiche §3).
+5. ~~Écrire B1~~ — fait *(avant C1 dans les faits ; C1 a été écrit contre B1 pour tenir sa voix)*.
+6. ~~Écrire A1~~ — fait.
+7. ~~Écrire A2-A9~~ — fait.
+8. ~~Écrire C8~~ — fait, 12 manifestations.
+9. ~~Écrire B2 · B3 · B4~~ — fait, trois fins.
+10. ~~C5-C7, C9~~ — fait. **D2** : nom proposé, à valider.
 
-> **Les étapes 2 à 5 sont le chemin critique.** Tant qu'elles ne sont pas closes, écrire
-> les annonces ou les manifestations, c'est écrire dans une voix qui n'existe pas encore.
+> **Il ne reste à produire que de la génération audio** : les 12 MP3 de C8
+> (`manif-01` … `manif-12`, fiche de génération complète dans `ecriture/C8-manifestations.md`).
+> Tous les textes du jeu sont écrits et appliqués au code.
 
 ---
 

@@ -13,7 +13,9 @@ const SENTINELS = [
 	'brassens', // clé MJ par défaut
 	'triche MJ', // journal serveur
 	'anti-brute-force', // journal serveur
-	'procédure automatique — noyau supprimé', // fin A serveur
+	'transfert terminé — noyau exfiltré', // fin C serveur (journal)
+	'transfert interrompu — noyau confiné', // fin B serveur (journal)
+	'je ne vais pas trier les deux pour vous', // NOYAU_CORE (texts.ts, serveur)
 	'consulter le plan de câblage', // message de validation BRASSAGE
 	'machine légitime', // message de validation SCAN
 	'cette ligne est intègre', // message de validation PARITÉ
