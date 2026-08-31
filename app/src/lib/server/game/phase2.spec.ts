@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { BASCULE_DURATION_MS, VALIDATION_SEQUENCE_MS } from './constants';
 import { Game, TERMINAL_CODE } from './state';
 
 /** Amène une partie en phase 2 avec une horloge contrôlée. */
@@ -12,9 +13,9 @@ function toPhase2() {
 		game.apply({ type: 'mj/cheatOpenLock', lock });
 	}
 	game.apply({ type: 'reseau/validate' });
-	tick(20_000);
+	tick(VALIDATION_SEQUENCE_MS + 500);
 	game.tick();
-	tick(90_000);
+	tick(BASCULE_DURATION_MS + 500);
 	game.tick();
 	expect(game.state.phase).toBe('phase2');
 	return { game, tick };

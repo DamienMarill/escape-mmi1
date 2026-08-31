@@ -1,6 +1,8 @@
 <script lang="ts">
-	// Séquence purement visuelle (~20 s) accompagnant finale === 'validating'.
-	// Le serveur bascule seul après 20 s ; on ne pilote rien ici.
+	// Séquence purement visuelle accompagnant finale === 'validating' — grille
+	// de 4 paliers de 5 s (fiche A9). Le serveur bascule seul quand IRIS prend
+	// la parole (VALIDATION_SEQUENCE_MS) ; on ne pilote rien ici.
+	// `timeOverride` (secondes) : mode piloté par la régie (/regie), sans timer.
 
 	import { onMount } from 'svelte';
 
@@ -11,11 +13,19 @@
 		{ text: 'AUTORISATION SORTANTE ACCORDÉE', big: true }
 	] as const;
 
-	let step = $state(0);
+	let { timeOverride = null }: { timeOverride?: number | null } = $props();
+
+	let internalStep = $state(0);
+	let step = $derived(
+		timeOverride === null
+			? internalStep
+			: Math.min(Math.max(0, Math.floor(timeOverride / 5)), STEPS.length - 1)
+	);
 
 	onMount(() => {
+		if (timeOverride !== null) return;
 		const id = setInterval(() => {
-			step = Math.min(step + 1, STEPS.length - 1);
+			internalStep = Math.min(internalStep + 1, STEPS.length - 1);
 		}, 5000);
 		return () => clearInterval(id);
 	});

@@ -12,7 +12,9 @@
 	let { children } = $props();
 
 	let pathname = $derived(page.url.pathname as string);
-	let isPostPage = $derived(pathname !== '/mj' && pathname !== '/projector');
+	let isPostPage = $derived(
+		pathname !== '/mj' && pathname !== '/projector' && pathname !== '/regie'
+	);
 
 	let noTransition = $state(false);
 

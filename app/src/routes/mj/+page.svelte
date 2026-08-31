@@ -34,7 +34,17 @@
 		class="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-4 py-2"
 	>
 		<h1 class="font-mono text-lg font-bold tracking-tight">Console MJ</h1>
-		<span class="font-mono text-xs text-muted-foreground">{serverUrl}</span>
+		<div class="flex items-center gap-4">
+			<!-- Le cookie MJ déjà posé donne accès à la régie sans re-saisir la clé. -->
+			<a
+				href="/regie"
+				target="_blank"
+				class="font-mono text-xs tracking-widest text-muted-foreground uppercase underline-offset-4 hover:text-foreground hover:underline"
+			>
+				Régie ↗
+			</a>
+			<span class="font-mono text-xs text-muted-foreground">{serverUrl}</span>
+		</div>
 	</header>
 
 	{#if !publicState}

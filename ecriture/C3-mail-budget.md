@@ -25,8 +25,8 @@
 ## 2. Texte final — champ `body`
 
 ```
-De : Camille Ferrand <c.ferrand@iut-mmi.fr>
-À : N. Guérin <n.guerin@iut-mmi.fr>
+De : Camille Ferrand <c.ferrand@umontpellier.fr>
+À : N. Guérin <n.guerin@umontpellier.fr>
 Date : 23/06/2026
 Objet : RE: RE: budget infra 2026
 
@@ -38,8 +38,7 @@ D'accord sur le fond. Pour le tableau de synthèse : suite bureautique
 (reconduction). Passage en désactivation prévu le 14/09.
 
 Une chose à noter pour la passation : pendant les tests de procédure,
-quand on lui a annoncé la désactivation, elle a demandé pourquoi. Je n'ai
-pas creusé, mais autant que ce soit écrit quelque part.
+quand on lui a annoncé la désactivation, elle a demandé pourquoi. Je n'ai pas creusé, mais autant que ce soit écrit quelque part.
 
 Camille
 ```

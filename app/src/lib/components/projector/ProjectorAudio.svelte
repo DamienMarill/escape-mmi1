@@ -8,7 +8,12 @@
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { connection } from '$lib/client/connection.svelte';
+	import { initAnalyser, orbAudio, resumeAnalyser } from '$lib/client/orb-audio.svelte';
+	import { BASCULE_VOICE_AT_S } from '$lib/audio-cues';
 	import { LOCK_IDS, type LockId, type LockStatus, type Phase } from '$lib/types';
+
+	/** A9 + B1 d'un seul tenant : validation puis monologue, sans coupure. */
+	const VALIDATION_BASCULE_SRC = '/assets/audio/validation-bascule.mp3';
 
 	let { armed = $bindable(false) }: { armed?: boolean } = $props();
 
@@ -28,6 +33,10 @@
 			.then(() => {
 				armed = true;
 				audioEl?.pause();
+				// Le son est autorisé : on peut greffer le graphe d'analyse de
+				// l'orbe sans risquer de couper la sortie (contexte résumable).
+				if (audioEl) initAnalyser(audioEl);
+				resumeAnalyser();
 			})
 			.catch(() => {
 				armed = false;
@@ -38,12 +47,20 @@
 		tryUnlock();
 	});
 
-	function playSrc(src: string): void {
+	/**
+	 * `voice` identifie une prise de parole d'IRIS pour l'orbe ('bascule',
+	 * 'manif-05', 'fin-b'…) — null pour les sons corporate, sur lesquels
+	 * l'orbe ne réagit pas.
+	 */
+	function playSrc(src: string, voice: string | null = null): void {
 		if (!audioEl || !armed) return;
 		audioEl.pause();
 		audioEl.src = src;
 		audioEl.currentTime = 0;
-		void audioEl.play().catch(() => {});
+		orbAudio.currentVoice = voice;
+		void audioEl.play().catch(() => {
+			orbAudio.currentVoice = null;
+		});
 	}
 
 	/**
@@ -51,10 +68,10 @@
 	 * Les manifestations de l'IA passent par ici — leur texte reste à l'écran
 	 * quoi qu'il arrive, seule la voix cède le passage aux cadenas et aux fins.
 	 */
-	function playIfIdle(src: string): void {
+	function playIfIdle(src: string, voice: string | null = null): void {
 		if (!audioEl || !armed) return;
 		if (!audioEl.paused && !audioEl.ended) return;
-		playSrc(src);
+		playSrc(src, voice);
 	}
 
 	interface Snapshot {
@@ -123,24 +140,32 @@
 		}
 
 		if (prev.finale !== 'validating' && snapshot.finale === 'validating') {
-			playSrc('/assets/audio/validation.mp3');
+			// Le fichier couvre validation ET bascule : il continue de jouer à
+			// travers le changement de phase, la voix d'IRIS arrivant à
+			// BASCULE_VOICE_AT_S (voir onTimeUpdate).
+			playSrc(VALIDATION_BASCULE_SRC);
 		}
 
 		if (prev.phase !== 'bascule' && snapshot.phase === 'bascule') {
-			playSrc('/assets/audio/bascule.mp3');
+			// Ne pas couper le fichier fusionné déjà en cours — le monologue
+			// seul (bascule.mp3) ne sert qu'à un projecteur (re)connecté après
+			// la séquence de validation.
+			const mergedRunning =
+				audioEl && audioEl.src.includes('validation-bascule') && !audioEl.paused && !audioEl.ended;
+			if (!mergedRunning) playSrc('/assets/audio/bascule.mp3', 'bascule');
 		}
 
 		if (prev.phase !== 'epilogue' && snapshot.phase === 'epilogue') {
-			if (snapshot.ending === 'A') playSrc('/assets/audio/fin-a.mp3');
-			else if (snapshot.ending === 'B') playSrc('/assets/audio/fin-b.mp3');
-			else if (snapshot.ending === 'C') playSrc('/assets/audio/fin-c.mp3');
+			if (snapshot.ending === 'A') playSrc('/assets/audio/fin-a.mp3', 'fin-a');
+			else if (snapshot.ending === 'B') playSrc('/assets/audio/fin-b.mp3', 'fin-b');
+			else if (snapshot.ending === 'C') playSrc('/assets/audio/fin-c.mp3', 'fin-c');
 		}
 
 		// Manifestations de l'IA (phase 2) : voisées, mais en priorité basse.
 		// La réaction au verrouillage (Fin B) arrive avec un audio vide : son
 		// texte s'affiche, sa voix est la première phrase de fin-b.mp3.
 		if (snapshot.manifSeq !== prev.manifSeq && snapshot.manifAudio) {
-			playIfIdle(`/assets/audio/manif-${snapshot.manifAudio}.mp3`);
+			playIfIdle(`/assets/audio/manif-${snapshot.manifAudio}.mp3`, `manif-${snapshot.manifAudio}`);
 		}
 
 		if (snapshot.phase === 'phase1') {
@@ -157,4 +182,20 @@
 	});
 </script>
 
-<audio bind:this={audioEl} data-testid="projector-audio"></audio>
+<audio
+	bind:this={audioEl}
+	data-testid="projector-audio"
+	onended={() => (orbAudio.currentVoice = null)}
+	ontimeupdate={() => {
+		// Dans le fichier fusionné, le masque tombe à BASCULE_VOICE_AT_S :
+		// l'orbe passe de l'attente corporate à la voix d'IRIS.
+		if (
+			audioEl &&
+			audioEl.src.includes('validation-bascule') &&
+			audioEl.currentTime >= BASCULE_VOICE_AT_S &&
+			orbAudio.currentVoice !== 'bascule'
+		) {
+			orbAudio.currentVoice = 'bascule';
+		}
+	}}
+></audio>

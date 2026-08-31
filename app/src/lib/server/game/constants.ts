@@ -2,6 +2,8 @@
 // Ce fichier ne doit JAMAIS être importé depuis du code client :
 // il vit sous lib/server/, SvelteKit interdit l'import côté client.
 
+import { BASCULE_VOICE_AT_S, VALIDATION_BASCULE_DURATION_S } from '$lib/audio-cues';
+
 export const GAME_ID = 'escape-mmi1-v2';
 export const SNAPSHOT_INTERVAL_MS = 2_000;
 
@@ -25,11 +27,16 @@ export const BASCULE_STAGGER_MS = 2_500;
 const SCALE = Number(process.env.TIME_SCALE ?? '1');
 export const TIME_SCALE = SCALE;
 
-/** Durée de la séquence bureaucratique après le clic VALIDER. */
-export const VALIDATION_SEQUENCE_MS = 20_000 * SCALE;
-
-/** Durée de la bascule (non interactif, ~90 s — game-design §4). */
-export const BASCULE_DURATION_MS = 90_000 * SCALE;
+/**
+ * Durée de la séquence bureaucratique après le clic VALIDER, et durée de la
+ * bascule (non interactif). Les deux sont CALÉES SUR L'AUDIO : le fichier
+ * validation-bascule.mp3 enchaîne A9 et B1 sans coupure, le serveur passe en
+ * `bascule` quand IRIS prend la parole, et en phase 2 à la fin du monologue
+ * (+2 s de battement — B1 §7.1). Ajuster $lib/audio-cues.ts, pas ici.
+ */
+export const VALIDATION_SEQUENCE_MS = Math.round(BASCULE_VOICE_AT_S * 1000) * SCALE;
+export const BASCULE_DURATION_MS =
+	Math.round((VALIDATION_BASCULE_DURATION_S - BASCULE_VOICE_AT_S + 2) * 1000) * SCALE;
 
 /**
  * Fraction du temps restant (à l'entrée en phase 2) au bout de laquelle le

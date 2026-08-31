@@ -13,6 +13,8 @@
 
 | Poste du plan v0.2 | Statut réel | Conséquence |
 |---|---|---|
+| **Vidéo d'introduction (~90 s)** | **Faite en code** — `IntroSequence.svelte` + 9 pictos SVG (`static/assets/svg/intro/`), timeline calée sur `intro.mp3` dans `src/lib/intro-timeline.ts` | Plus une vidéo. Reste : générer `intro.mp3` (A1, 4 segments) et **ajuster les timecodes** de la timeline à l'oreille |
+| **Bascule (~90 s)** | **Faite en code** — l'orbe d'IRIS (`Orb.svelte`), audio-réactive sur `bascule.mp3` (Web Audio), paramètres émotionnels dans `src/lib/orb-moods.ts` | Plus une vidéo. L'orbe porte aussi les manifestations de phase 2 et les trois épilogues |
 | Séquence de validation finale (~20 s) | **Faite en code** — `ValidatingSequence.svelte`, 4 étapes de 5 s | Plus une vidéo. Reste à écrire : les 4 lignes, déjà présentes et jouables |
 | Épilogues A et B (2 × 20 s) | **Faits en code** — `EpilogueScreen.svelte` | Écrans typographiques. Reste : la ligne de fin + le MP3 de voix |
 | Effet de glitch | **Fait en CSS** — `BasculeGlitch.svelte` | Zéro asset |
@@ -105,7 +107,7 @@ artefact fabriqué par l'IA — il a le droit d'être plat.**
 
 | # | Livrable | Emplacement | Format cible | Statut |
 |---|---|---|---|---|
-| A1 | **Script vidéo d'introduction** | `static/assets/video/intro.mp4` | ~90 s · 226 mots | ✅ `ecriture/A1-video-intro.md` |
+| A1 | **Script vidéo d'introduction** | `audio/intro.mp3` *(la vidéo est devenue une séquence HTML/SVG, timeline `intro-timeline.ts`)* | ~90 s · 226 mots | ✅ `ecriture/A1-video-intro.md` |
 | A2 | Annonce cadenas α | `audio/cadenas-alpha.mp3` | 2 phrases | ✅ `ecriture/A2-A8-annonces.md` |
 | A3 | Annonce cadenas β | `audio/cadenas-beta.mp3` | 2 phrases | ✅ idem |
 | A4 | Annonce cadenas γ | `audio/cadenas-gamma.mp3` | 2 phrases | ✅ idem |
@@ -290,6 +292,14 @@ trois réécritures.
 | **B** — voix IRIS | 4 | ~330 mots | 4 *(dont 1 mixte 2 voix)* | ✅ écrit |
 | **C** — écran phase 2 | 10 | ~1 300 mots | **13** *(manifestations)* | frise §6.2 |
 | **D** — hors app | 6 | ~150 mots (4/6 déjà écrits) | — | — |
+
+> **✅ 31/08/2026 — tous les audios sont générés et installés dans
+> `app/static/assets/audio/`** (conversion WAV → MP3 depuis `ecriture/`).
+> Particularité de montage : **A9 et B1 sont un seul fichier**
+> (`validation-bascule.mp3`, 121,4 s) — la validation enchaîne sans coupure sur
+> le monologue, IRIS prend la parole à 24,8 s. Les durées des phases serveur et
+> le changement d'état de l'orbe en dérivent via `app/src/lib/audio-cues.ts`.
+> `bascule.mp3` (B1 seul) reste en place pour un projecteur reconnecté en cours.
 
 **≈ 2 100 mots de texte et 23 MP3.** Le passage à 24 fichiers audio vient entièrement de
 la décision 1.3 : les manifestations pèsent plus de la moitié du volume de génération

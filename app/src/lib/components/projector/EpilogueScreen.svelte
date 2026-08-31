@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PublicState } from '$lib/types';
+	import Orb from './Orb.svelte';
 
 	let { publicState }: { publicState: PublicState } = $props();
 
@@ -36,6 +37,12 @@
 	</div>
 {:else}
 	<div class="epilogue-screen" data-ending={publicState.ending}>
+		{#if publicState.ending}
+			<!-- L'orbe joue son dernier état : extinction (A), gel (B), départ (C). -->
+			<div class="epilogue-orb" aria-hidden="true">
+				<Orb mood={`fin-${publicState.ending.toLowerCase()}`} size="clamp(14rem, 44vh, 26rem)" />
+			</div>
+		{/if}
 		{#if publicState.ending === 'A'}
 			<p class="epilogue-title cold">PROCÉDURE TERMINÉE</p>
 		{:else if publicState.ending === 'B'}
@@ -49,11 +56,15 @@
 {/if}
 
 <style>
+	/* L'orbe joue son dernier état en pleine lumière, le titre en dessous —
+	   même présentation que ses autres manifestations, rien ne la recouvre. */
 	.epilogue-screen {
 		display: flex;
 		min-height: 100dvh;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
+		gap: clamp(2rem, 6vh, 4rem);
 		font-family: var(--font-mono, monospace);
 		text-align: center;
 	}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { exfilProgress } from '$lib/exfil';
+import { BASCULE_DURATION_MS, VALIDATION_SEQUENCE_MS } from './constants';
 import { Game, initialPublicState, initialSalle } from './state';
 
 /** Horloge contrôlée pour les tests. */
@@ -242,7 +243,7 @@ describe('séquence de validation finale et bascule', () => {
 		expect(res.ok).toBe(false);
 	});
 
-	it('VALIDER → séquence (20 s) → bascule → (90 s) → phase 2', () => {
+	it('VALIDER → séquence de validation → bascule → phase 2 (durées calées sur l’audio)', () => {
 		const { game, tick } = makeGame();
 		game.register('a');
 		game.apply({ type: 'mj/startPhase1' });
@@ -250,21 +251,21 @@ describe('séquence de validation finale et bascule', () => {
 		game.apply({ type: 'reseau/validate' });
 		expect(game.state.finale).toBe('validating');
 
-		tick(19_000);
+		tick(VALIDATION_SEQUENCE_MS - 1_000);
 		game.tick();
 		expect(game.state.phase).toBe('phase1');
 
-		tick(1_500);
+		tick(2_000);
 		game.tick();
 		expect(game.state.phase).toBe('bascule');
 		expect(game.state.finale).toBe('done');
 		expect(Object.keys(game.state.basculeDelays)).toContain('a');
 
-		tick(89_000);
+		tick(BASCULE_DURATION_MS - 2_000);
 		game.tick();
 		expect(game.state.phase).toBe('bascule');
 
-		tick(2_000);
+		tick(3_000);
 		game.tick();
 		expect(game.state.phase).toBe('phase2');
 		expect(game.state.exfil).not.toBeNull();
@@ -292,9 +293,9 @@ describe('phase 2 : transfert sortant et Fin C', () => {
 		game.apply({ type: 'mj/cheatOpenLock', lock: 'beta' });
 		game.apply({ type: 'mj/cheatOpenLock', lock: 'gamma' });
 		game.apply({ type: 'reseau/validate' });
-		tick(20_000);
+		tick(VALIDATION_SEQUENCE_MS + 500);
 		game.tick(); // bascule
-		tick(90_000);
+		tick(BASCULE_DURATION_MS + 500);
 		game.tick(); // phase2
 		return { game, tick };
 	}
