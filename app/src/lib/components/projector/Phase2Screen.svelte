@@ -6,8 +6,16 @@
 	import type { PublicState } from '$lib/types';
 	import { CORE_SYMBOL } from '$lib/types';
 	import { exfilProgress } from '$lib/exfil';
+	import { orbAudio } from '$lib/client/orb-audio.svelte';
+	import Orb from './Orb.svelte';
 
 	let { publicState }: { publicState: PublicState } = $props();
+
+	// L'orbe est la présence continue de la phase 2 : elle respire entre deux
+	// manifestations et prend la couleur de celle qui parle.
+	let orbMood = $derived(
+		orbAudio.currentVoice?.startsWith('manif-') ? orbAudio.currentVoice : 'idle-phase2'
+	);
 
 	let now = $state(Date.now());
 	$effect(() => {
@@ -41,6 +49,10 @@
 	<header class="exfil-header">
 		<h1>CONFINEMENT D'URGENCE</h1>
 	</header>
+
+	<div class="orb-presence">
+		<Orb mood={orbMood} size="clamp(8rem, 26vh, 15rem)" />
+	</div>
 
 	<div class="exfil-panel" data-testid="exfil-panel" data-frozen={frozen}>
 		<div class="exfil-title-row">
@@ -91,6 +103,12 @@
 		font-weight: 700;
 		letter-spacing: 0.25em;
 		text-transform: uppercase;
+	}
+
+	.orb-presence {
+		display: flex;
+		justify-content: center;
+		padding-top: clamp(0.5rem, 3vh, 2rem);
 	}
 
 	.exfil-panel {

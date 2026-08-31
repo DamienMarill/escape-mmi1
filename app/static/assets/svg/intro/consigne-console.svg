@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Ne pas toucher la console d'administration">
+  <!-- ✗ La machine reliée au vidéoprojecteur ne fait pas partie de l'évaluation. -->
+  <style>
+    .trait { stroke: #dfe3f0; stroke-width: 6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .non { stroke: #e0523f; stroke-width: 8; fill: none; stroke-linecap: round; }
+  </style>
+  <!-- Console + faisceau de projection -->
+  <rect class="trait" x="52" y="96" width="70" height="44" rx="6" />
+  <line class="trait" x1="60" y1="110" x2="96" y2="110" stroke-width="4" opacity="0.7" />
+  <line class="trait" x1="60" y1="122" x2="88" y2="122" stroke-width="4" opacity="0.7" />
+  <rect class="trait" x="120" y="60" width="34" height="18" rx="4" />
+  <path class="trait" d="M 122 96 L 130 78 M 144 78 L 152 96" stroke-width="4" opacity="0.7" />
+  <!-- Silhouette qui s'approche -->
+  <circle class="trait" cx="34" cy="70" r="10" />
+  <path class="trait" d="M 34 80 V 108 M 34 88 L 52 100" />
+  <!-- Interdiction -->
+  <circle class="non" cx="100" cy="104" r="76" />
+  <line class="non" x1="47" y1="51" x2="153" y2="157" />
+</svg>

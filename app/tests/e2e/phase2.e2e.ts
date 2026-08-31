@@ -77,6 +77,8 @@ test('FIN B : verrouiller x et r gèle le transfert et conclut immédiatement', 
 	await toPhase2(request);
 
 	await expect(projector.getByTestId('exfil-panel')).toBeVisible();
+	// L'orbe reste présente en phase 2 (elle respire entre deux manifestations)
+	await expect(projector.getByTestId('orb')).toBeVisible();
 	// Le symbole du répertoire n'est pas révélé avant l'ouverture du dossier
 	await expect(projector.getByTestId('exfil-panel')).not.toContainText('◆');
 

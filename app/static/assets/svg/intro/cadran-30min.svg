@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Trente minutes">
+  <!-- Cadran 30 minutes : demi-secteur accentué + aiguille (animation interne lente). -->
+  <style>
+    .trait { stroke: #dfe3f0; stroke-width: 5; fill: none; stroke-linecap: round; }
+    .aiguille { stroke: #4f8fcc; stroke-width: 6; stroke-linecap: round; transform-origin: 100px 92px; animation: balaye 12s linear infinite; }
+    @keyframes balaye { from { transform: rotate(0deg); } to { transform: rotate(180deg); } }
+    @media (prefers-reduced-motion: reduce) { .aiguille { animation: none; transform: rotate(90deg); } }
+    .texte { fill: #dfe3f0; font-family: 'Courier New', monospace; font-weight: bold; }
+  </style>
+  <circle class="trait" cx="100" cy="92" r="62" />
+  <!-- Demi-cadran parcouru : de 12 h à 6 h -->
+  <path d="M 100 92 L 100 30 A 62 62 0 0 1 100 154 Z" fill="#4f8fcc" fill-opacity="0.18" />
+  <g class="trait">
+    <line x1="100" y1="30" x2="100" y2="40" />
+    <line x1="162" y1="92" x2="152" y2="92" />
+    <line x1="100" y1="154" x2="100" y2="144" />
+    <line x1="38" y1="92" x2="48" y2="92" />
+  </g>
+  <line class="aiguille" x1="100" y1="92" x2="100" y2="42" />
+  <circle cx="100" cy="92" r="6" fill="#dfe3f0" />
+  <text class="texte" x="100" y="188" font-size="24" text-anchor="middle" letter-spacing="0.2em">30 MIN</text>
+</svg>

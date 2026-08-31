@@ -18,6 +18,10 @@
 		epilogue: 'Épilogue'
 	};
 
+	function startSession() {
+		connection.act({ type: 'mj/startIntro' });
+	}
+
 	function startPhase1() {
 		connection.act({ type: 'mj/startPhase1' });
 	}
@@ -35,9 +39,20 @@
 	<Card.Content class="space-y-3">
 		<p class="font-mono text-2xl font-bold">{PHASE_LABELS[publicState.phase]}</p>
 		<div class="flex flex-wrap gap-2">
-			<Button disabled={publicState.phase !== 'idle'} onclick={startPhase1}
-				>Démarrer la phase 1</Button
+			<!-- Le parcours nominal : intro au projecteur, postes verrouillés,
+			     ouverture automatique à la fin de la séquence. -->
+			<Button
+				disabled={publicState.phase !== 'idle'}
+				onclick={startSession}
+				data-testid="mj-start-session">Démarrer la session</Button
 			>
+			<Button
+				variant="outline"
+				disabled={publicState.phase !== 'idle' && publicState.phase !== 'intro'}
+				onclick={startPhase1}
+			>
+				{publicState.phase === 'intro' ? "Passer l'introduction" : 'Phase 1 sans intro'}
+			</Button>
 			<Button variant="destructive" onclick={() => (resetOpen = true)}>Reset</Button>
 		</div>
 	</Card.Content>

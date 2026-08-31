@@ -5,7 +5,7 @@
 	import { connection } from '$lib/client/connection.svelte';
 	import ProjectorAudio from '$lib/components/projector/ProjectorAudio.svelte';
 	import IdleScreen from '$lib/components/projector/IdleScreen.svelte';
-	import IntroVideo from '$lib/components/projector/IntroVideo.svelte';
+	import IntroSequence from '$lib/components/projector/IntroSequence.svelte';
 	import Phase1Screen from '$lib/components/projector/Phase1Screen.svelte';
 	import BasculeScreen from '$lib/components/projector/BasculeScreen.svelte';
 	import Phase2Screen from '$lib/components/projector/Phase2Screen.svelte';
@@ -25,7 +25,7 @@
 	{#if !connection.state || connection.state.phase === 'idle'}
 		<IdleScreen {armed} onArm={() => audioRef?.tryUnlock()} />
 	{:else if connection.state.phase === 'intro'}
-		<IntroVideo {armed} onEnded={onIntroEnded} />
+		<IntroSequence {armed} onEnded={onIntroEnded} />
 	{:else if connection.state.phase === 'phase1'}
 		<Phase1Screen publicState={connection.state} />
 	{:else if connection.state.phase === 'bascule'}

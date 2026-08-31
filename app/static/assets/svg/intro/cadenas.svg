@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" role="img" aria-label="Cadenas fermé">
+  <!-- MÊME DESSIN que LockColumn.svelte (projecteur) et que les cadenas du poste
+       SYSTÈME — c'est ce qui arme le fusil de Tchekhov (A1 §6, plan 2).
+       Ne pas modifier les tracés sans modifier LockColumn en face. -->
+  <g fill="none" stroke="oklch(0.7 0.02 250)" stroke-width="10" stroke-linecap="round">
+    <path d="M 30 55 V 35 A 20 20 0 0 1 70 35 V 55" />
+  </g>
+  <rect x="15" y="55" width="70" height="55" rx="10" fill="oklch(0.5 0.02 250)" />
+</svg>

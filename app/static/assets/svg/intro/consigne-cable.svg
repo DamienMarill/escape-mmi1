@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Ne débrancher aucun câble">
+  <!-- ✗ Main qui tire sur un câble. -->
+  <style>
+    .trait { stroke: #dfe3f0; stroke-width: 6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .non { stroke: #e0523f; stroke-width: 8; fill: none; stroke-linecap: round; }
+  </style>
+  <!-- Prise murale -->
+  <rect class="trait" x="34" y="82" width="26" height="52" rx="4" />
+  <circle cx="47" cy="98" r="3.5" fill="#dfe3f0" />
+  <circle cx="47" cy="118" r="3.5" fill="#dfe3f0" />
+  <!-- Fiche à moitié tirée + câble -->
+  <rect class="trait" x="74" y="94" width="26" height="28" rx="4" />
+  <line class="trait" x1="60" y1="101" x2="74" y2="101" />
+  <line class="trait" x1="60" y1="115" x2="74" y2="115" />
+  <path class="trait" d="M 100 108 C 122 108 128 120 142 126" />
+  <!-- Main -->
+  <path class="trait" d="M 142 126 C 150 120 162 120 166 128 C 170 136 162 146 150 146 C 142 146 136 140 134 134" />
+  <!-- Interdiction -->
+  <circle class="non" cx="100" cy="108" r="76" />
+  <line class="non" x1="47" y1="55" x2="153" y2="161" />
+</svg>

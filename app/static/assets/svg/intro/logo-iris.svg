@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="IRIS — Interface de Recherche et d'Information Scolaire">
+  <!-- Logo du système d'évaluation : monogramme administratif, sobre. -->
+  <style>
+    .trait { stroke: #dfe3f0; stroke-width: 5; fill: none; stroke-linecap: round; }
+    .accent { stroke: #4f8fcc; }
+    .texte { fill: #dfe3f0; font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: 0.35em; }
+  </style>
+  <rect class="trait" x="40" y="24" width="120" height="120" rx="16" />
+  <!-- Ouverture concentrique — un diaphragme administratif, pas un œil -->
+  <circle class="trait" cx="100" cy="84" r="34" />
+  <circle class="trait accent" cx="100" cy="84" r="20" />
+  <circle cx="100" cy="84" r="7" fill="#4f8fcc" />
+  <text class="texte" x="100" y="182" font-size="30" text-anchor="middle">IRIS</text>
+</svg>

@@ -11,7 +11,9 @@
 
 	let active = $derived(
 		connection.syncing ||
-			(isPostPage && connection.state?.phase === 'idle') ||
+			// Les postes restent en veille pendant l'intro : ils s'ouvrent quand
+			// la séquence se termine (introEnded → phase 1 + chrono).
+			(isPostPage && (connection.state?.phase === 'idle' || connection.state?.phase === 'intro')) ||
 			Boolean(me?.lockedByMj)
 	);
 

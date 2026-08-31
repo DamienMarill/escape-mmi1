@@ -17,19 +17,26 @@ async function openProjector(browser: import('@playwright/test').Browser): Promi
 	return page;
 }
 
-test('intro : lancement MJ, phase intro au projecteur, fin d’intro → phase 1', async ({
+test('intro : lancement MJ, séquence au projecteur, postes verrouillés, fin d’intro → phase 1', async ({
 	browser,
 	request
 }) => {
 	const projector = await openProjector(browser);
+	const post = await openPost(browser, BASE);
 	await act(request, { type: 'mj/startIntro' });
-	await expect(projector.locator('video')).toBeVisible();
+	await expect(projector.getByTestId('intro-screen')).toBeVisible();
+	await expect(projector.getByTestId('intro-subtitle')).toBeVisible();
+	// Les postes restent en veille pendant toute la séquence
+	await expect(post.getByTestId('blocking-layer')).toHaveAttribute('data-active', 'true');
 
 	await act(request, { type: 'projector/introEnded' });
 	const state = await (await request.get('/api/state', { headers: MJ_COOKIE })).json();
 	expect(state.phase).toBe('phase1');
 	expect(state.chrono.running).toBe(true);
+	// ...et s'ouvrent quand la séquence se termine
+	await expect(post.getByTestId('blocking-layer')).toHaveAttribute('data-active', 'false');
 	await projector.context().close();
+	await post.context().close();
 });
 
 test('bascule complète : triche 3 cadenas → VALIDER → vague sur tous les postes', async ({
@@ -61,6 +68,9 @@ test('bascule complète : triche 3 cadenas → VALIDER → vague sur tous les po
 		});
 		await expect(post.locator('h1')).toContainText('CONFINEMENT');
 	}
+
+	// L'orbe d'IRIS occupe le projecteur (bascule puis phase 2 — plus de vidéo)
+	await expect(projector.getByTestId('orb')).toBeVisible();
 
 	// L'audio ne sort que du projecteur
 	const projectorPlaying = await projector.evaluate(() => {

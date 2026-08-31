@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Ne pas chercher sous le mobilier">
+  <!-- ✗ Silhouette penchée sous une table — tout est à hauteur de regard. -->
+  <style>
+    .trait { stroke: #dfe3f0; stroke-width: 6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .non { stroke: #e0523f; stroke-width: 8; fill: none; stroke-linecap: round; }
+  </style>
+  <!-- Table -->
+  <line class="trait" x1="46" y1="86" x2="154" y2="86" />
+  <line class="trait" x1="56" y1="86" x2="56" y2="140" />
+  <line class="trait" x1="144" y1="86" x2="144" y2="140" />
+  <!-- Silhouette penchée dessous -->
+  <circle class="trait" cx="122" cy="106" r="10" />
+  <path class="trait" d="M 112 112 C 98 118 88 128 84 140 M 104 116 L 96 140" />
+  <!-- Interdiction -->
+  <circle class="non" cx="100" cy="108" r="76" />
+  <line class="non" x1="47" y1="55" x2="153" y2="161" />
+</svg>
