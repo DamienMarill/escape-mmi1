@@ -175,17 +175,21 @@ describe('ménage des postes fantômes', () => {
 		expect(game.salle.registry['vivant']).toBe(1);
 	});
 
-	it('mj/forgetPost retire un poste déconnecté, refuse un poste connecté', () => {
+	it('mj/forgetPost retire un poste, connecté ou non (flux SSE zombie possible)', () => {
 		const { game } = makeGame();
 		game.register('a');
 		game.register('b');
 		game.setConnected('a', true);
 
-		const refused = game.apply({ type: 'mj/forgetPost', clientId: 'a' });
-		expect(refused.ok).toBe(false);
+		// Même connecté : un onglet fermé peut rester vu « connecté » côté
+		// serveur, l'oubli manuel doit toujours être possible.
+		const res1 = game.apply({ type: 'mj/forgetPost', clientId: 'a' });
+		expect(res1.ok).toBe(true);
+		expect(game.state.posts['a']).toBeUndefined();
+		expect(game.salle.registry['a']).toBeUndefined();
 
-		const res = game.apply({ type: 'mj/forgetPost', clientId: 'b' });
-		expect(res.ok).toBe(true);
+		const res2 = game.apply({ type: 'mj/forgetPost', clientId: 'b' });
+		expect(res2.ok).toBe(true);
 		expect(game.state.posts['b']).toBeUndefined();
 		expect(game.salle.registry['b']).toBeUndefined();
 	});

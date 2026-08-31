@@ -444,13 +444,14 @@ export class Game {
 			case 'mj/forgetPost': {
 				const post = s.posts[action.clientId];
 				if (!post) return { ok: false, error: 'poste inconnu' };
-				if (post.connected)
-					return { ok: false, error: 'poste encore connecté — le débrancher d’abord' };
-				// Le plan de salle (numéro → rôle) est conservé : la machine de
-				// remplacement qui reprendra ce numéro héritera du rôle.
+				// Un poste « connecté » peut être un flux SSE zombie (onglet fermé
+				// sans que le serveur le détecte) : l'oubli est donc toujours
+				// permis. Une machine réellement vivante se ré-enregistrera à son
+				// prochain rechargement. Le plan de salle (numéro → rôle) est
+				// conservé : le repreneur du numéro héritera du rôle.
 				delete s.posts[action.clientId];
 				delete this.salle.registry[action.clientId];
-				this.log(`poste ${post.number} oublié`);
+				this.log(`poste ${post.number} oublié${post.connected ? ' (était connecté)' : ''}`);
 				break;
 			}
 			case 'mj/revealSegment': {
