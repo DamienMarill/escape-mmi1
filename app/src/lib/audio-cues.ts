@@ -17,3 +17,9 @@ export const BASCULE_VOICE_AT_S = 24.8;
 
 /** Durée totale du fichier fusionné (fin du monologue). */
 export const VALIDATION_BASCULE_DURATION_S = 121.4;
+
+/**
+ * Volume des musiques d'ambiance (0–1) — volontairement bas : le lit musical
+ * ne doit jamais concurrencer les annonces ni la voix d'IRIS. À ajuster ici.
+ */
+export const AMBIENT_VOLUME = 0.15;

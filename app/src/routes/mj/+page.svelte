@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { resolve } from '$app/paths';
 	import { connection } from '$lib/client/connection.svelte';
 	import PostesPanel from '$lib/components/mj/postes-panel.svelte';
 	import SessionPanel from '$lib/components/mj/session-panel.svelte';
@@ -37,7 +38,7 @@
 		<div class="flex items-center gap-4">
 			<!-- Le cookie MJ déjà posé donne accès à la régie sans re-saisir la clé. -->
 			<a
-				href="/regie"
+				href={resolve('/regie')}
 				target="_blank"
 				class="font-mono text-xs tracking-widest text-muted-foreground uppercase underline-offset-4 hover:text-foreground hover:underline"
 			>

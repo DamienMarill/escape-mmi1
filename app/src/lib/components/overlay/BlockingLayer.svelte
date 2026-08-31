@@ -8,14 +8,21 @@
 
 	let me = $derived(connection.me);
 	let postRole = $derived(me?.role && me.role !== 'projector' ? me.role : null);
+	/** Le poste devenu projecteur affiche ProjectorView : jamais de couche. */
+	let isProjector = $derived(me?.role === 'projector');
 
 	let active = $derived(
 		connection.syncing ||
 			// Les postes restent en veille pendant l'intro : ils s'ouvrent quand
 			// la séquence se termine (introEnded → phase 1 + chrono).
-			(isPostPage && (connection.state?.phase === 'idle' || connection.state?.phase === 'intro')) ||
+			(isPostPage &&
+				!isProjector &&
+				(connection.state?.phase === 'idle' || connection.state?.phase === 'intro')) ||
 			Boolean(me?.lockedByMj)
 	);
+
+	/** Pendant l'intro : noir complet — le projecteur seul a la parole. */
+	let blackout = $derived(isPostPage && !isProjector && connection.state?.phase === 'intro');
 
 	async function activate() {
 		if (!connection.clientId) return;
@@ -26,10 +33,11 @@
 <div
 	class="blocking-layer"
 	class:is-active={active}
+	class:blackout
 	data-testid="blocking-layer"
 	data-active={active}
 >
-	<div class="flex flex-col items-center gap-6 px-6 text-center">
+	<div class="flex flex-col items-center gap-6 px-6 text-center" class:invisible={blackout}>
 		{#if !isPostPage}
 			<p class="font-mono text-lg tracking-widest uppercase opacity-80">Connexion en cours…</p>
 		{:else}
@@ -55,10 +63,16 @@
 		{/if}
 	</div>
 
-	{#if isPostPage}
+	{#if isPostPage && !blackout}
 		<p class="absolute bottom-6 px-6 text-center font-mono text-xs opacity-60">
 			Documentation de référence : postes + ressources de salle.<br />
 			Certains documents n'ont pas été numérisés.
 		</p>
 	{/if}
 </div>
+
+<style>
+	.blocking-layer.blackout {
+		background: black;
+	}
+</style>

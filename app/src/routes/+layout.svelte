@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { connection } from '$lib/client/connection.svelte';
+	import { keepScreenAwake } from '$lib/client/wake-lock';
 	import BlockingLayer from '$lib/components/overlay/BlockingLayer.svelte';
 	import { display, syncDisplayPhase } from '$lib/components/overlay/display.svelte';
 	import EventLayer from '$lib/components/overlay/EventLayer.svelte';
@@ -20,6 +21,8 @@
 
 	onMount(() => {
 		connection.start({ asPost: isPostPage });
+		// Aucun écran de la salle ne doit partir en veille pendant une session.
+		return keepScreenAwake();
 	});
 
 	$effect(() => {
