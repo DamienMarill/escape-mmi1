@@ -17,6 +17,10 @@
 		simulate,
 		type BlockId
 	} from '$lib/dev-sim';
+	// Source unique du symbole : le terminal de phase 2 lit la MÊME constante.
+	// Un littéral dupliqué ici rendrait la phase 2 insoluble sans rien casser
+	// de visible en phase 1.
+	import { CORE_SYMBOL } from '$lib/types';
 
 	const ALL_BLOCKS: BlockId[] = [...BASE_BLOCKS, 'repete-avance', 'si-mur-tourne'];
 	/** Rotation à appliquer à un glyphe pointant nativement le nord (0=est 1=sud 2=ouest 3=nord). */
@@ -129,24 +133,26 @@
 					{#if ch === 'T'}
 						<span
 							class:animate-pulse={solved}
-							style="color: var(--game-accent)"
+							style="color: var(--game-accent); opacity: {solved ? 1 : 0.25}"
 							data-testid="dev-symbol"
 						>
-							◆
+							{CORE_SYMBOL}
 						</span>
 					{/if}
 				</div>
 			{/each}
 		{/each}
-		<div
-			class="pointer-events-none flex items-center justify-center text-2xl"
-			style="grid-column: {robot.x + 1}; grid-row: {robot.y + 1}; transform: rotate({ROT_FROM_NORTH[
-				robot.dir
-			]}deg); color: var(--game-accent); transition: transform 150ms ease;"
-			data-testid="dev-robot"
-		>
-			▲
-		</div>
+		{#if !solved}
+			<div
+				class="pointer-events-none flex items-center justify-center text-2xl"
+				style="grid-column: {robot.x + 1}; grid-row: {robot.y + 1}; transform: rotate({ROT_FROM_NORTH[
+					robot.dir
+				]}deg); color: var(--game-accent); transition: transform 150ms ease;"
+				data-testid="dev-robot"
+			>
+				▲
+			</div>
+		{/if}
 	</div>
 {/snippet}
 
@@ -158,6 +164,16 @@
 	{#if solved}
 		<div class="flex flex-col items-center gap-6 text-center" data-testid="dev-solved">
 			{@render grid()}
+			<div class="flex flex-col items-center gap-2">
+				<p class="text-xs tracking-[0.3em] uppercase opacity-60">Symbole déposé</p>
+				<p
+					class="leading-none"
+					style="font-size: 7rem; color: var(--game-accent)"
+					data-testid="dev-symbol-large"
+				>
+					{CORE_SYMBOL}
+				</p>
+			</div>
 			<p class="text-xl tracking-widest uppercase">🔓 cadenas α ouvert</p>
 		</div>
 	{:else}
